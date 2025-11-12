@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RicardoVanAken\PestPluginIntegrationTests;
 
+use Pest\Plugin;
 use RicardoVanAken\PestPluginIntegrationTests\IntegrationTestCase;
 use PHPUnit\Framework\TestCase;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
