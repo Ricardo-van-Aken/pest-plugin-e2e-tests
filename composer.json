@@ -38,6 +38,13 @@
             "pestphp/pest-plugin": true
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RicardoVanAken\\PestPluginIntegrationTests\\TestingDatabaseServiceProvider"
+            ]
+        }
+    },
     "scripts": {
         "refacto": "rector",
         "lint": "pint",
