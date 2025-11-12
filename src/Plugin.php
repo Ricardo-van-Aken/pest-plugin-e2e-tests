@@ -19,10 +19,14 @@ final class Plugin implements Bootable
      */
     public function boot(): void
     {
+        // Log that boot was called (useful for debugging)
+        if (function_exists('error_log')) {
+            error_log('[PestPluginIntegrationTests] Plugin::boot() called');
+        }
+
         // Automatically extend tests in 'Integration' directory with IntegrationTestCase
         pest()->extend(IntegrationTestCase::class)
             ->use(DatabaseTruncation::class)
             ->in('Integration');
     }
 }
- 
