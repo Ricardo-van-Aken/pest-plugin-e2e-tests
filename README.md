@@ -64,7 +64,7 @@ Also make sure your APP_URL points to the correct URL.
 Publish all package assets at once:
 
 ```bash
-php artisan vendor:publish --provider="RicardoVanAken\LaravelIntegrationTesting\TestingDatabaseServiceProvider"
+php artisan vendor:publish --provider="RicardoVanAken\PestPluginIntegrationTests\TestingDatabaseServiceProvider"
 ```
 
 Or publish individual assets:
@@ -99,6 +99,24 @@ php artisan vendor:publish --tag=testing-database-phpunit
 **When to publish:** Always. This file allows you to run integration tests with different database settings than your regular unit/feature tests.
 
 **Customization:** After publishing, adjust the `DB_CONNECTION` value in `phpunit.integration.xml` to match your preferred testing connection (e.g., `mysql_testing`, `pgsql_testing`, etc.).
+
+#### Integration Test Stubs (`integration-tests`)
+
+```bash
+php artisan vendor:publish --tag=integration-tests
+```
+
+**What it does:** Creates integration test files in your `tests/Integration` directory.
+
+**Purpose:** Provides ready-to-use integration test stubs based on Laravel's starterkit feature tests. These tests use the `httpRequestBuilder()` method to make actual HTTP requests to your application.
+
+**Available tests:**
+- `tests/Integration/Auth/AuthenticationTest.php` - Authentication integration tests (login, logout, 2FA, rate limiting)
+- `tests/Integration/Auth/RegistrationTest.php` - Registration integration tests (registration screen, user registration)
+
+**When to publish:** When you want to add integration test coverage for your Laravel application. These tests complement your existing feature tests by testing the full HTTP stack.
+
+**Note:** The published tests will be placed in the `tests/Integration` directory. Make sure your Pest configuration extends `IntegrationTestCase` for tests in this directory (this is typically handled automatically by the plugin).
 
 ### Automatic Database Connection Creation
 

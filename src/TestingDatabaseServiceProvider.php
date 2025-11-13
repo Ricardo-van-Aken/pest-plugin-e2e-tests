@@ -55,11 +55,27 @@ class TestingDatabaseServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/phpunit.integration.xml' => base_path('phpunit.integration.xml'),
         ], 'testing-database-phpunit');
 
-        // Register CSRF token route for integration tests
-        Route::middleware('web')->get('/test/csrf-token', function () {
-            return response()->json([
-                'csrf_token' => csrf_token(),
-            ]);
+        // Publish integration test stubs
+        $this->publishes([
+            __DIR__.'/../stubs/tests/Integration/Auth/AuthenticationTest.php' => base_path('tests/Integration/Auth/AuthenticationTest.php'),
+            __DIR__.'/../stubs/tests/Integration/Auth/RegistrationTest.php' => base_path('tests/Integration/Auth/RegistrationTest.php'),
+        ], 'integration-tests');
+
+        // Register routes required for integration tests
+        Route::middleware('web')->group(function () {
+            Route::get('/test/csrf-token', function () {
+                return response()->json([
+                    'csrf_token' => csrf_token(),
+                ]);
+            });
+
+            Route::get('/test/requires-auth', function () {
+                return response()->json(['success' => true]);
+            })->middleware('auth');
+
+            Route::get('/test/requires-nothing', function () {
+                return response()->json(['success' => true]);
+            });
         });
     }
 
