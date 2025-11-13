@@ -137,8 +137,6 @@ abstract class IntegrationTestCase extends BaseTestCase
 
             public function refreshXsrf()
             {
-                // Get xsrf token only when it doesn't exist yet to avoid making unnecessary HTTP requests.
-                dump('Refreshing xsrf token');
                 $this->xsrfToken = $this->getXsrfToken();
                 return $this;
             }
@@ -158,6 +156,8 @@ abstract class IntegrationTestCase extends BaseTestCase
                         throw new \Exception('Login route not found: ' . $loginRoute);
                     }
                 }
+
+                dump('Login route: ' . $loginRoute);
                 
                 // Log in the user
                 $response = $this->post($loginRoute, [
