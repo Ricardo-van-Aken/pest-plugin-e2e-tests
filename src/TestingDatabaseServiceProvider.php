@@ -56,7 +56,7 @@ class TestingDatabaseServiceProvider extends ServiceProvider
         ], 'testing-database-phpunit');
 
         // Register CSRF token route for integration tests
-        Route::get('/test/csrf-token', function () {
+        Route::middleware('web')->get('/test/csrf-token', function () {
             return response()->json([
                 'csrf_token' => csrf_token(),
             ]);
