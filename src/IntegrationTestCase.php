@@ -160,7 +160,7 @@ abstract class IntegrationTestCase extends BaseTestCase
                 }
                 
                 // Log in the user
-                $response = $this->withXsrf()->post($loginRoute, [
+                $response = $this->post($loginRoute, [
                     'email' => $user->email,
                     'password' => $password,
                 ])->send();
