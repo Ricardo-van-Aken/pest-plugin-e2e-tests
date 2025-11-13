@@ -23,7 +23,6 @@ abstract class IntegrationTestCase extends BaseTestCase
             'verify' => false,
             'cookies' => new CookieJar(),
         ]);
-
         
         // Get the current runtime connection
         $currentConnection = DB::getDefaultConnection();
@@ -73,6 +72,7 @@ abstract class IntegrationTestCase extends BaseTestCase
             public function __construct($client)
             {
                 $this->client = $client;
+                $this->xsrfToken = $this->getXsrfToken();
             }
 
             public function get($uri, $params = [])
@@ -135,13 +135,11 @@ abstract class IntegrationTestCase extends BaseTestCase
                 return $data['csrf_token'] ?? null;
             }
 
-            public function withXsrf()
+            public function refreshXsrf()
             {
                 // Get xsrf token only when it doesn't exist yet to avoid making unnecessary HTTP requests.
-                dump('Getting xsrf token');
-                dump('old Xsrf token: ' . $this->xsrfToken);
-                $this->xsrfToken ??= $this->getXsrfToken();
-                dump('new Xsrf token: ' . $this->xsrfToken);
+                dump('Refreshing xsrf token');
+                $this->xsrfToken = $this->getXsrfToken();
                 return $this;
             }
 
@@ -169,8 +167,7 @@ abstract class IntegrationTestCase extends BaseTestCase
 
                 // Refresh xsrf token after authentication
                 dump('Refreshing xsrf token');
-                $this->xsrfToken = null;
-                $this->withXsrf();
+                $this->xsrfToken = $this->getXsrfToken();
 
                 return $this;
             }
