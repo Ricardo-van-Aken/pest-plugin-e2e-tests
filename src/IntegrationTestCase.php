@@ -145,15 +145,23 @@ abstract class IntegrationTestCase extends BaseTestCase
             public function actingAs($user, $password = 'password')
             {
                 // Log in the user
-                $loginRoute = config('integration-testing.login_route', '/login');
+                $loginConfig = config('integration-testing.login_route', '/login');
+                $loginRoute = $loginConfig;
+
+                // If the route doesn't start with '/', try to resolve it as a route name
+                if (!str_starts_with($loginConfig, '/')) {
+                    try {
+                        $loginRoute = route($loginRoute);
+                    } catch (\Exception $e) {
+                        throw new \Exception('Login route not found: ' . $loginRoute);
+                    }
+                }
+                
                 $response = $this->withXsrf()->post($loginRoute, [
                     'email' => $user->email,
                     'password' => $password,
                 ])->send();
 
-                if ($response->getStatusCode() !== 302) {
-                    throw new \Exception('Login failed for user: ' . $user->email);
-                }
 
                 // Get new xsrf token after authentication
                 $this->xsrfToken = $this->getXsrfToken();

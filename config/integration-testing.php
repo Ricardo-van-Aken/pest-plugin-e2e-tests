@@ -18,7 +18,7 @@ return [
     | Login Route
     |--------------------------------------------------------------------------
     |
-    | The route used for user authentication in integration tests.
+    | The route used for user authentication in integration tests. This can be a full URL or a route name.
     |
     */
 
