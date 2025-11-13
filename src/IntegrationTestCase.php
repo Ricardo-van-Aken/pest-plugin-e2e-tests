@@ -147,6 +147,7 @@ abstract class IntegrationTestCase extends BaseTestCase
 
             public function actingAs($user, $password = 'password')
             {
+                dump('Acting as user');
                 // Get the login url
                 $loginConfig = config('integration-testing.login_route', '/login');
                 $loginRoute = $loginConfig;
