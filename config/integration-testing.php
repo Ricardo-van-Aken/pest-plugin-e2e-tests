@@ -22,7 +22,7 @@ return [
     |
     */
 
-    'login_route' => env('TESTING_DB_LOGIN_ROUTE', '/login'),
+    'login_route' => env('TESTING_DB_LOGIN_ROUTE', 'login.store'),
 
 ];
 
