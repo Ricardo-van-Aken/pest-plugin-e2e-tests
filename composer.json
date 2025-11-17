@@ -1,5 +1,5 @@
 {
-    "name": "ricardo-van-aken/pest-plugin-integration-tests",
+    "name": "ricardo-van-aken/pest-plugin-e2e-tests",
     "description": "My awesome plugin",
     "keywords": [
         "php",
@@ -20,7 +20,7 @@
     },
     "autoload": {
         "psr-4": {
-            "RicardoVanAken\\PestPluginIntegrationTests\\": "src/"
+            "RicardoVanAken\\PestPluginE2ETests\\": "src/"
         },
         "files": [
             "src/Autoload.php"
@@ -41,7 +41,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "RicardoVanAken\\PestPluginIntegrationTests\\TestingDatabaseServiceProvider"
+                "RicardoVanAken\\PestPluginE2ETests\\TestingDatabaseServiceProvider"
             ]
         }
     },
