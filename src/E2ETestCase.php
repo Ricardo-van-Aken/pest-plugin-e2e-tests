@@ -67,6 +67,7 @@ abstract class E2ETestCase extends BaseTestCase
         return new class($this->client) {
             private $client;
             private $pendingRequest = [];
+            private $headers = [];
             private $xsrfToken = null;
 
             public function __construct($client)
@@ -143,10 +144,7 @@ abstract class E2ETestCase extends BaseTestCase
 
             public function withHeaders(array $headers)
             {
-                if (!isset($this->pendingRequest['headers'])) {
-                    $this->pendingRequest['headers'] = [];
-                }
-                $this->pendingRequest['headers'] = array_merge($this->pendingRequest['headers'], $headers);
+                $this->headers = array_merge($this->headers, $headers);
                 return $this;
             }
 
@@ -200,23 +198,25 @@ abstract class E2ETestCase extends BaseTestCase
                 // Initialize headers array
                 $options['headers'] = [];
 
-                // Always add the header to make sure the application receiving the request knows it's a testing request.
+                // Always add the X-TESTING header to make sure the application receiving the request knows it's a testing request.
                 $headerName = config('e2e-testing.header_name', 'X-TESTING');
                 $options['headers'][$headerName] = 1;
 
+                // Add the csrf token if available
                 if ($this->xsrfToken) {
                     $options['headers']['X-CSRF-TOKEN'] = $this->xsrfToken;
                 }
 
-                // Merge any custom headers that were set via withHeader() or withHeaders()
-                if (isset($this->pendingRequest['headers'])) {
-                    $options['headers'] = array_merge($options['headers'], $this->pendingRequest['headers']);
+                // Merge any custom headers that were set via withHeaders()
+                if (!empty($this->headers)) {
+                    $options['headers'] = array_merge($options['headers'], $this->headers);
                 }
 
                 $response = $this->client->request($method, $uri, $options);
 
-                // Reset only the builder's request
+                // Reset the builder's request and headers
                 $this->pendingRequest = [];
+                $this->headers = [];
 
                 return $response;
             }
