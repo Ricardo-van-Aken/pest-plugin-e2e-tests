@@ -201,9 +201,9 @@ abstract class E2ETestCase extends BaseTestCase
                     $options['query'] = $params;
 
                     // Merge the existing query params from the url with the new query params
+                    $existing_query_params = [];
                     $url_query = parse_url($uri, PHP_URL_QUERY) ?? '';
-                    
-                    $existing_query_params = parse_str($url_query, $options['query']);
+                    parse_str($url_query, $existing_query_params);
                     $options['query'] = array_merge($existing_query_params, $params);
                 }
 
