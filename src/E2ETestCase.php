@@ -19,26 +19,12 @@ abstract class E2ETestCase extends BaseTestCase
     {
         parent::setUp();
 
-        $stack = HandlerStack::create();
-        $stack->push(Middleware::tap(function ($request, $options) {
-            error_log('=== Guzzle Tap Request ===');
-            error_log('Method: ' . $request->getMethod());
-            error_log('URI: ' . (string) $request->getUri());
-            error_log('Headers: ' . json_encode($request->getHeaders(), JSON_PRETTY_PRINT));
-            $body = (string) $request->getBody();
-            if ($body !== '') {
-                error_log('Body: ' . $body);
-            }
-            error_log('Options: ' . json_encode($options, JSON_PRETTY_PRINT));
-            error_log('==========================');
-        }));
-
         // For each test, create a new client with refreshed cookiejar
         $this->client = new Client([
             'base_uri' => env('APP_URL', 'https://localhost'),
             'verify' => false,
             'cookies' => new CookieJar(),
-            'handler' => $stack,
+            'handler' => $this->createHandlerStack(),
         ]);
         
         // Get the current runtime connection
@@ -244,6 +230,25 @@ abstract class E2ETestCase extends BaseTestCase
                 return $this->send();
             }
         };
+    }
+
+    protected function createHandlerStack(): HandlerStack
+    {
+        $stack = HandlerStack::create();
+        $stack->push(Middleware::tap(function ($request, $options) {
+            error_log('=== Guzzle Tap Request ===');
+            error_log('Method: ' . $request->getMethod());
+            error_log('URI: ' . (string) $request->getUri());
+            error_log('Headers: ' . json_encode($request->getHeaders(), JSON_PRETTY_PRINT));
+            $body = (string) $request->getBody();
+            if ($body !== '') {
+                error_log('Body: ' . $body);
+            }
+            error_log('Options: ' . json_encode($options, JSON_PRETTY_PRINT));
+            error_log('==========================');
+        }));
+
+        return $stack;
     }
 }
 
