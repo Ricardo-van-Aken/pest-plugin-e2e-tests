@@ -24,5 +24,29 @@ return [
 
     'login_route' => env('TESTING_DB_LOGIN_ROUTE', 'login.store'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Two Factor Challenge Route (POST)
+    |--------------------------------------------------------------------------
+    |
+    | The route used for submitting the 2FA challenge (recovery code or TOTP code).
+    | This can be a full URL or a route name. Defaults to Laravel Fortify's route.
+    |
+    */
+
+    'two_factor_challenge_route' => env('TESTING_DB_TWO_FACTOR_CHALLENGE_ROUTE', 'two-factor.challenge'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Two Factor Challenge Location Route (GET)
+    |--------------------------------------------------------------------------
+    |
+    | The route used to check if login redirected to 2FA challenge page.
+    | This can be a full URL or a route name. Defaults to Laravel Fortify's route.
+    |
+    */
+
+    'two_factor_challenge_location_route' => env('TESTING_DB_TWO_FACTOR_CHALLENGE_LOCATION_ROUTE', 'two-factor.login'),
+
 ];
 

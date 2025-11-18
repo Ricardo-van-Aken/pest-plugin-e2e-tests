@@ -64,7 +64,9 @@ abstract class E2ETestCase extends BaseTestCase
         // Clear cache to ensure test isolation (resets rate limiters, session data, etc.). Make sure
         // tests dont use the same cache as the application.
         Cache::flush();
-        
+
+        // NOTE: Think about clearing queues and sessions here too.
+
         parent::tearDown();
     }
 
@@ -174,29 +176,79 @@ abstract class E2ETestCase extends BaseTestCase
                 return $this;
             }
 
-            public function actingAs($user, $password = 'password')
+            public function actingAs($user, $password = 'password', $recoveryCode = null)
             {
-                // Get the login url
-                $loginConfig = config('e2e-testing.login_route', '/login');
-                $loginRoute = $loginConfig;
-
-                // If the route doesn't start with '/', try to resolve it as a route name
-                if (!str_starts_with($loginConfig, '/')) {
+                // Get the login post url
+                $loginUrl = config('e2e-testing.login_route', '/login');
+                if (!str_starts_with($loginUrl, '/')) {
                     try {
-                        $loginRoute = route($loginRoute);
+                        $loginUrl = route($loginUrl);
                     } catch (\Exception $e) {
-                        throw new \Exception('Login route not found: ' . $loginRoute);
+                        throw new \Exception('Login route in config e2e-testing does not exist: ' . $loginUrl);
                     }
                 }
-                
+
+                // Get the 2FA challenge post url
+                $twoFactorChallengeUrl = config('e2e-testing.two_factor_challenge_route', '/two-factor-challenge');
+                if (!str_starts_with($twoFactorChallengeUrl, '/')) {
+                    try {
+                        $twoFactorChallengeUrl = route($twoFactorChallengeUrl);
+                    } catch (\Exception $e) {
+                        throw new \Exception('Two factor challenge route in config e2e-testing does not exist: ' . $twoFactorChallengeUrl);
+                    }
+                }
+
+                // Get the 2FA challenge location url
+                $twoFactorChallengeLocation = config('e2e-testing.two_factor_challenge_location_route', '/two-factor-challenge');
+                if (!str_starts_with($twoFactorChallengeLocation, '/')) {
+                    try {
+                        $twoFactorChallengeLocation = route($twoFactorChallengeLocation);
+                    } catch (\Exception $e) {
+                        throw new \Exception('Two factor challenge location route in config e2e-testing does not exist: ' . $twoFactorChallengeLocation);
+                    }
+                }
+
                 // Log in the user
-                $this->post($loginRoute, [
+                $loginResponse = $this->post($loginUrl, [
                     'email' => $user->email,
                     'password' => $password,
                 ])->send();
-
-                // Refresh xsrf token after authentication
+                $loginRedirect = $loginResponse->getHeaderLine('Location');
+                
+                // Check if login failed
+                if (str_contains($loginRedirect, $loginUrl)) {
+                    $body = (string) $loginResponse->getBody();
+                    throw new \Exception(
+                        'Login failed - redirected back to login page. ' .
+                        'This usually means invalid credentials or validation errors. ' .
+                        'Response: ' . (strlen($body) > 200 ? substr($body, 0, 200) . '...' : $body)
+                    );
+                }
+                
+                // Refresh XSRF token after succesful login
                 $this->xsrfToken = $this->getXsrfToken();
+
+                // If redirected to 2FA challenge page, complete 2FA
+                if (str_contains($loginRedirect, $twoFactorChallengeLocation)) {
+                    // Post the 2FA challenge
+                    $twoFactorChallengeResponse = $this->post($twoFactorChallengeUrl, [
+                        'recovery_code' => $recoveryCode,
+                    ])->send();
+                    
+                    // Check if 2FA failed
+                    $twoFactorRedirect = $twoFactorChallengeResponse->getHeaderLine('Location');
+                    if (str_contains($twoFactorRedirect, $twoFactorChallengeUrl)) {
+                        $body = (string) $twoFactorChallengeResponse->getBody();
+                        throw new \Exception(
+                            '2FA challenge failed - redirected back to 2FA challenge page. ' .
+                            'This usually means invalid recovery code or validation errors. ' .
+                            'Response: ' . (strlen($body) > 200 ? substr($body, 0, 200) . '...' : $body)
+                        );
+                    }
+
+                    // Refresh XSRF token after succesful 2FA
+                    $this->xsrfToken = $this->getXsrfToken();
+                }
 
                 return $this;
             }
