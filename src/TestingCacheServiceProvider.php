@@ -41,11 +41,8 @@ class TestingCacheServiceProvider extends ServiceProvider
     {
         $cacheDriver = config('cache.default');
 
-        error_log("Switching cache to testing storage for cache driver: {$cacheDriver}");
-
         switch ($cacheDriver) {
             case 'redis':
-                error_log("Switching Redis cache to testing storage");
                 $this->switchRedisCacheToTesting();
                 break;
 
@@ -95,8 +92,6 @@ class TestingCacheServiceProvider extends ServiceProvider
         $cacheConnection = config('cache.stores.redis.connection', 'cache');
         $redisConfig = config("database.redis.{$cacheConnection}", []);
 
-        error_log("Redis config: " . json_encode($redisConfig));
-
         if (empty($redisConfig)) {
             Log::warning(
                 "[LaravelIntegrationTesting] Redis config not found for connection '{$cacheConnection}'. " .
@@ -107,9 +102,6 @@ class TestingCacheServiceProvider extends ServiceProvider
 
         $currentCacheDb = $redisConfig['database'] ?? 1;
         $testingCacheDb = (int) env('REDIS_CACHE_DB_TESTING', 15);
-
-        error_log("Current cache database: {$currentCacheDb}");
-        error_log("Testing cache database: {$testingCacheDb}");
 
         // Check if the testing and application redis cache databases are the same.
         if ($testingCacheDb === $currentCacheDb) {
@@ -122,8 +114,6 @@ class TestingCacheServiceProvider extends ServiceProvider
             );
             return;
         }
-
-        error_log("Switching Redis cache to testing storage: " . json_encode($redisConfig));
 
         // Switch the used redis cache database to the testing cache database.
         config([

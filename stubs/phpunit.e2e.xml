@@ -52,12 +52,12 @@
         
         <!-- Redis Cache Configuration
         Only uncomment if you use Redis for caching.
-        The application will automatically switch to a separate Redis database for testing when it receives a test
-        request. This database number is set in the application's environment with REDIS_CACHE_DB_TESTING(default: 15).
-        We want the tests code to use this same database number.
+        The e2e testing plugin will automatically make the application switch to a separate Redis database for testing
+        when it receives a test request. This database number is set in the application's environment with
+        REDIS_CACHE_DB_TESTING(default: 15). We want the tests code to use this same database number.
         -->
         <env name="REDIS_CACHE_DB" value="15"/>
-        
+
         <!-- Other Cache Drivers
         The plugin automatically handles isolation for other cache drivers(no configuration needed):
         - Database cache: uses a separate testing database connection
@@ -65,6 +65,39 @@
         - Array cache: already isolated per process
         - Memcached: uses a testing prefix
         - DynamoDB: uses a testing table
+        -->	
+        
+        <!-- Redis Session Configuration
+        Only uncomment if you use Redis for sessions.
+        The e2e testing plugin will automatically make the application switch to a separate Redis database for testing
+        when it receives a test request. This database number is set in the application's environment with
+        REDIS_SESSION_DB_TESTING(default: 14). We want the tests code to use this same database number.
+        -->
+        <env name="REDIS_SESSION_DB" value="14"/>
+
+        <!-- Other Session Drivers
+        The plugin automatically handles isolation for other session drivers(no configuration needed):
+        - Database sessions: uses a separate testing database connection
+        - File sessions: uses storage/framework/sessions/testing directory
+        - Array sessions: already isolated per process
+        - Cookie sessions: already isolated per request
+        - Memcached: uses a testing prefix
+        - DynamoDB: uses a testing table
+        -->
+        
+        <!-- Redis Queue Configuration
+        Only uncomment if you use Redis for queues.
+        The e2e testing plugin will automatically make the application switch to a separate Redis database for testing
+        when it receives a test request. This database number is set in the application's environment with
+        REDIS_QUEUE_DB_TESTING(default: 13). We want the tests code to use this same database number.
+        -->
+        <env name="REDIS_QUEUE_DB" value="13"/>
+
+        <!-- Other Queue Drivers
+        The plugin automatically handles isolation for other queue drivers(no configuration needed):
+        - Database queues: uses a separate testing database connection
+        - Sync queues: already isolated per process
+        - SQS/Beanstalkd: would require separate servers/accounts for testing
         -->
     </php>
 </phpunit>

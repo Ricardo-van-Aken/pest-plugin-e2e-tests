@@ -43,7 +43,9 @@
             "providers": [
                 "RicardoVanAken\\PestPluginE2ETests\\TestingServiceProvider",
                 "RicardoVanAken\\PestPluginE2ETests\\TestingDatabaseServiceProvider",
-                "RicardoVanAken\\PestPluginE2ETests\\TestingCacheServiceProvider"
+                "RicardoVanAken\\PestPluginE2ETests\\TestingCacheServiceProvider",
+                "RicardoVanAken\\PestPluginE2ETests\\TestingSessionServiceProvider",
+                "RicardoVanAken\\PestPluginE2ETests\\TestingQueueServiceProvider"
             ]
         }
     },
