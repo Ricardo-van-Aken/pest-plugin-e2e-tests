@@ -27,7 +27,7 @@
         ]
     },
     "require-dev": {
-        "larastan/larastan": "^3.8",
+        "phpstan/phpstan": "^2.0",
         "pestphp/pest-dev-tools": "^4.0.0"
     },
     "minimum-stability": "dev",
