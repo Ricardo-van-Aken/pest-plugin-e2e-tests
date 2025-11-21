@@ -97,7 +97,7 @@
         The plugin automatically handles isolation for other queue drivers(no configuration needed):
         - Database queues: uses a separate testing database connection
         - Sync queues: already isolated per process
-        - SQS/Beanstalkd: would require separate servers/accounts for testing
+        - SQS/Beanstalkd: would require separate servers/accounts for testing, currently not supported
         -->
     </php>
 </phpunit>
