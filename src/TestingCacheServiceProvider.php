@@ -89,7 +89,9 @@ class TestingCacheServiceProvider extends ServiceProvider
     protected function switchRedisCacheToTesting(): void
     {
         // Get the current cache connection
+        /** @var string $cacheConnection */
         $cacheConnection = config('cache.stores.redis.connection', 'cache');
+        /** @var array<string, mixed> $redisConfig */
         $redisConfig = config("database.redis.{$cacheConnection}", []);
 
         if (empty($redisConfig)) {
@@ -100,6 +102,7 @@ class TestingCacheServiceProvider extends ServiceProvider
             return;
         }
 
+        /** @var int $currentCacheDb */
         $currentCacheDb = $redisConfig['database'] ?? 1;
         $testingCacheDb = (int) env('REDIS_CACHE_DB_TESTING', 15);
 

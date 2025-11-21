@@ -14,14 +14,18 @@ class TestingDatabaseServiceProvider extends ServiceProvider
     public function register(): void
     {
         // If the application uses a testing database(when running tests), create the testing connection
-        if (str_ends_with(config('database.default'), '_testing')) {
-            $this->createTestingConnection(config('database.default'));
+        /** @var string $defaultConnection */
+        $defaultConnection = config('database.default', 'mysql');
+        if (str_ends_with($defaultConnection, '_testing')) {
+            $this->createTestingConnection($defaultConnection);
         }
 
         // Switch to testing database if header is present(receiving test requests)
         if ($this->isTestRequest()) {
             // Get the current default connection and switch to its _testing version
-            $testingConnection = config('database.default') . '_testing';
+            /** @var string $defaultConnection */
+            $defaultConnection = config('database.default', 'mysql');
+            $testingConnection = $defaultConnection . '_testing';
             
             // Create the testing connection
             $this->createTestingConnection($testingConnection);
@@ -46,7 +50,11 @@ class TestingDatabaseServiceProvider extends ServiceProvider
      */
     protected function isTestRequest(): bool
     {
-        return request()->hasHeader(config('e2e-testing.header_name', 'X-TESTING'));
+        /** @var \Illuminate\Http\Request $request */
+        $request = request();
+        /** @var string $headerName */
+        $headerName = config('e2e-testing.header_name', 'X-TESTING');
+        return $request->hasHeader($headerName);
     }
 
     /**
@@ -78,10 +86,11 @@ class TestingDatabaseServiceProvider extends ServiceProvider
         }
 
         // Build testing config based on database type
+        /** @var array<string, mixed> $testingConfig */
         $testingConfig = array_merge($baseConfig, [
             'database' => env('DB_DATABASE_TESTING', ''),
         ]);
-        if (in_array($baseConnection, ['mysql', 'mariadb', 'pgsql', 'sqlsrv'])) {
+        if (in_array($baseConnection, ['mysql', 'mariadb', 'pgsql', 'sqlsrv'], true)) {
             $testingConfig['username'] = env('DB_USERNAME_TESTING', '');
             $testingConfig['password'] = env('DB_PASSWORD_TESTING', '');
         }
