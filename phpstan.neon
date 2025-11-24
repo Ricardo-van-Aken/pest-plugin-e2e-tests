@@ -1,17 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
 parameters:
     level: max
     paths:
         - src
 
+    bootstrapFiles:
+        - phpstan/phpstan-bootstrap.php
+
     reportUnmatchedIgnoredErrors: true
-    
-    # Ignore Laravel helper functions - they're provided by Laravel at runtime when the package is used
-    ignoreErrors:
-        - '#Function config not found#'
-        - '#Function request not found#'
-        - '#Function response not found#'
-        - '#Function route not found#'
-        - '#Function csrf_token not found#'
-        - '#Function storage_path not found#'
-        - '#Function base_path not found#'
-        - '#Function config_path not found#'
+
+    scanFiles:
+        # Include Laravel helpers from the test app
+        - test-app/laravel_root/vendor/laravel/framework/src/Illuminate/Foundation/helpers.php
+        - test-app/laravel_root/vendor/laravel/framework/src/Illuminate/Support/helpers.php

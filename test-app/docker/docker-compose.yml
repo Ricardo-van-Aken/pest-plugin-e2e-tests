@@ -1,0 +1,143 @@
+services:
+  # Laravel Application
+  app:
+    image: ${IMAGE_REPO}:laravel-app.latest
+    build:
+      context: ../
+      dockerfile: docker/img_laravel/${DOCKERFILE}
+    container_name: laravel_app
+    restart: unless-stopped
+    volumes:
+      - ./img_laravel/${ENV_FILE}:/var/www/.env     # Bind mount: Application environment variables
+      - ${APP_FILES_DIR}:/var/www     # Volume or Bind mount: Application files to be served by nginx
+    environment:
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_DATABASE_TESTING=${DB_TEST_DATABASE}
+      - DB_USERNAME_TESTING=${DB_TEST_USERNAME}
+      - DB_PASSWORD_TESTING=${DB_TEST_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: ["/bin/sh", "-c", "exec php-fpm"]
+    profiles: ["core"]
+
+  # Nginx Web Server
+  nginx:
+    image: ${IMAGE_REPO}:website-nginx.latest
+    build:
+      context: ./img_nginx
+      dockerfile: Dockerfile.nginx
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"     # HTTP
+      - "443:443"   # HTTPS
+    volumes:
+      - ${APP_FILES_DIR}:/var/www           # Volume or Bind mount: Application files to be served by nginx
+      - certbot_files:/var/www/certbot/:ro  # Volume: Certbot files to be served by nginx (for confirming domain ownership)
+      - certbot_certs:/etc/nginx/ssl/:ro    # Volume: Https certificates from certs container
+    depends_on:
+      - app
+    environment:
+      - APP_DOMAIN=${APP_DOMAIN}
+    profiles: ["core"]
+
+  # MySQL Database
+  mysql_db:
+    image: ${IMAGE_REPO}:mysql-db.latest
+    build:
+      context: ./img_mysqldb
+      dockerfile: Dockerfile.mysql
+    container_name: db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE_TESTING=${DB_TEST_DATABASE}
+      - MYSQL_USERNAME_TESTING=${DB_TEST_USERNAME}
+      - MYSQL_PASSWORD_TESTING=${DB_TEST_PASSWORD}
+    command: ["/bin/sh", "-c", ". /custom-entrypoint.sh"]
+    profiles: ["db-mysql"]
+
+  # PHPMyAdmin for inspecting the database, logged in as the admin user used by Laravel
+  phpmyadmin-admin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin-admin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db  # Must be the same as container_name of the db
+      PMA_USER=${DB_USERNAME}
+      PMA_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 8080:80
+    depends_on:
+      - mysql_db
+    profiles: ["db-mysql"]
+  
+  phpmyadmin-testing:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin-testing
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db  # Must be the same as container_name of the db
+      PMA_USER=${DB_TEST_USERNAME}
+      PMA_PASSWORD=${DB_TEST_PASSWORD}
+    ports:
+      - 8081:80
+    depends_on:
+      - mysql_db
+    profiles: ["db-mysql"]
+
+  # Redis for sessions and caching
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    secrets:
+      - redis_password
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command:
+      - /bin/sh
+      - -c
+      - |
+        if [ -n "$REDIS_PASSWORD" ]; then
+          exec redis-server --requirepass "$REDIS_PASSWORD"
+        fi
+        exec redis-server
+    profiles: ["cache-redis", "queue-redis", "session-redis"]
+
+  # phpRedisAdmin for inspecting Redis data, similar to PHPMyAdmin
+  phpredisadmin:
+    image: erikdubbelboer/phpredisadmin:latest
+    container_name: phpredisadmin
+    restart: unless-stopped
+    environment:
+      REDIS_1_HOST: redis
+      REDIS_1_PORT: 6379
+      REDIS_1_AUTH: ${REDIS_PASSWORD}
+      REDIS_1_NAME: "Redis Cache"
+    ports:
+      - 8082:80
+    depends_on:
+      - redis
+    profiles: ["cache-redis", "queue-redis", "session-redis"]
+
+  # Local Certificate Generation Service
+  cert_local:
+    image: ${IMAGE_REPO}:cert-local.latest
+    build:
+      context: ./img_certlocal
+      dockerfile: Dockerfile.cert-local
+    container_name: cert_local
+    environment:
+      - APP_DOMAIN=${APP_DOMAIN}
+    volumes:
+      - certbot_certs:/etc/nginx/ssl/:rw  # Volume: Share the generated SSL certificates with nginx
+    profiles: ["core"]
+
+volumes:
+  app_files:
+  certbot_certs:

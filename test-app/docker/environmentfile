@@ -1,0 +1,16 @@
+IMAGE_REPO=local/starterkit.laravel-react-docker
+DOCKERFILE=Dockerfile.laravel-volume
+ENV_FILE=.env.testing
+APP_FILES_DIR=../app
+APP_DOMAIN=app.localhost
+
+DB_DATABASE=laravel_app_db
+DB_USERNAME=admin
+DB_PASSWORD=secret
+DB_TEST_DATABASE=laravel_app_db_testing
+DB_TEST_USERNAME=testing-admin
+DB_TEST_PASSWORD=secretttt
+DB_ROOT_PASSWORD=verysecret
+
+REDIS_PASSWORD=secretredispass
+
