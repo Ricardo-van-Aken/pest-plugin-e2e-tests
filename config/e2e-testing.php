@@ -49,4 +49,3 @@ return [
     'two_factor_challenge_location_route' => env('TESTING_DB_TWO_FACTOR_CHALLENGE_LOCATION_ROUTE', 'two-factor.login'),
 
 ];
-

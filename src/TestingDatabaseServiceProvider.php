@@ -25,11 +25,11 @@ class TestingDatabaseServiceProvider extends ServiceProvider
             // Get the current default connection and switch to its _testing version
             /** @var string $defaultConnection */
             $defaultConnection = config('database.default', 'mysql');
-            $testingConnection = $defaultConnection . '_testing';
-            
+            $testingConnection = $defaultConnection.'_testing';
+
             // Create the testing connection
             $this->createTestingConnection($testingConnection);
-            
+
             // Only switch if the testing connection exists
             if (config("database.connections.{$testingConnection}")) {
                 DB::setDefaultConnection($testingConnection);
@@ -54,12 +54,13 @@ class TestingDatabaseServiceProvider extends ServiceProvider
         $request = request();
         /** @var string $headerName */
         $headerName = config('e2e-testing.header_name', 'X-TESTING');
+
         return $request->hasHeader($headerName);
     }
 
     /**
      * Create a testing database connection for the given connection name.
-     * 
+     *
      * @return bool True if the connection was created, false otherwise
      */
     protected function createTestingConnection(string $testingConnection): bool
@@ -67,21 +68,23 @@ class TestingDatabaseServiceProvider extends ServiceProvider
         // Skip if testing connection already exists, we don't want to overwrite any existing connections
         if (config("database.connections.{$testingConnection}")) {
             Log::warning(
-                "[LaravelIntegrationTesting] Testing database connection '{$testingConnection}' already exists. " .
-                "Skipping automatic creation. If you want to use the auto-created connection, remove the existing one from your config."
+                "[LaravelIntegrationTesting] Testing database connection '{$testingConnection}' already exists. ".
+                'Skipping automatic creation. If you want to use the auto-created connection, remove the existing one from your config.'
             );
+
             return false;
         }
 
         // Check if the base db connection exists, and get the config
         $baseConnection = str_replace('_testing', '', $testingConnection);
         $baseConfig = config("database.connections.{$baseConnection}");
-        if (!$baseConfig) {
+        if (! $baseConfig) {
             Log::warning(
-                "[LaravelIntegrationTesting] Base database connection '{$baseConnection}' not found. " .
-                "Cannot create testing connection '{$testingConnection}'. " .
-                "Make sure the base connection is configured."
+                "[LaravelIntegrationTesting] Base database connection '{$baseConnection}' not found. ".
+                "Cannot create testing connection '{$testingConnection}'. ".
+                'Make sure the base connection is configured.'
             );
+
             return false;
         }
 
@@ -101,4 +104,3 @@ class TestingDatabaseServiceProvider extends ServiceProvider
         return true;
     }
 }
-

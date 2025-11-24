@@ -25,4 +25,3 @@ test('new users can register', function () {
     $this->assertEquals(200, $response->getStatusCode());
     $this->assertEquals(['success' => true], json_decode($response->getBody(), true));
 });
-

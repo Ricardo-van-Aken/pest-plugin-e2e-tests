@@ -17,7 +17,7 @@ test('password can be updated', function () {
     $user = User::factory()->withoutTwoFactor()->create();
 
     $builder = $this->httpRequestBuilder()->actingAs($user);
-    
+
     // First visit the password edit page
     $builder->get(route('user-password.edit'))->send();
 
@@ -39,7 +39,7 @@ test('correct password must be provided to update password', function () {
     $user = User::factory()->withoutTwoFactor()->create();
 
     $builder = $this->httpRequestBuilder()->actingAs($user);
-    
+
     // First visit the password edit page
     $builder->get(route('user-password.edit'))->send();
 
@@ -56,4 +56,3 @@ test('correct password must be provided to update password', function () {
     // Password should not be updated
     $this->assertFalse(Hash::check('new-password', $user->refresh()->password));
 });
-

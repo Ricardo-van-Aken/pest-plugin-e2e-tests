@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
 
 test('login screen can be rendered', function () {
@@ -14,7 +13,7 @@ test('login screen can be rendered', function () {
 test('users can authenticate using the login screen', function () {
     // Create a user without two factor enabled, and attempt to login
     $user = User::factory()->withoutTwoFactor()->create();
-    
+
     $builder = $this->httpRequestBuilder();
     $response = $builder->post(route('login.store'), [
         'email' => $user->email,
@@ -57,7 +56,7 @@ test('users with two factor enabled are redirected to two factor challenge', fun
         'email' => $user->email,
         'password' => 'password',
     ])->send();
-    
+
     // Should redirect to two factor challenge
     $this->assertEquals(302, $response->getStatusCode());
     $this->assertStringContainsString(route('two-factor.login'), $response->getHeaderLine('Location'));
@@ -106,10 +105,10 @@ test('users can logout', function () {
 });
 
 test('users are rate limited', function () {
-    $user =  User::factory()->withoutTwoFactor()->create();
+    $user = User::factory()->withoutTwoFactor()->create();
 
     $builder = $this->httpRequestBuilder();
-    
+
     // Make 5 failed login attempts to trigger rate limiting
     // Each failed attempt increments the rate limiter
     for ($i = 0; $i < 5; $i++) {
@@ -126,9 +125,8 @@ test('users are rate limited', function () {
             'email' => $user->email,
             'password' => 'wrong-password',
         ])
-        ->send();
+            ->send();
     } catch (\GuzzleHttp\Exception\ClientException $e) {
         $this->assertEquals(429, $e->getResponse()->getStatusCode());
     }
 });
-

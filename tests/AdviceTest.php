@@ -1,26 +1,26 @@
 <?php
 
+use function RicardoVanAken\PestPluginE2ETests\advice;
 use function RicardoVanAken\PestPluginE2ETests\badAdvice;
 use function RicardoVanAken\PestPluginE2ETests\goodAdvice;
-use function RicardoVanAken\PestPluginE2ETests\advice;
 
 test('can get bad advice', function () {
     $advice = badAdvice();
-    
+
     expect($advice)->toBeString()
         ->not->toBeEmpty();
 });
 
 test('can get good advice', function () {
     $advice = goodAdvice();
-    
+
     expect($advice)->toBeString()
         ->not->toBeEmpty();
 });
 
 test('can get random advice', function () {
     $advice = advice();
-    
+
     expect($advice)->toBeString()
         ->not->toBeEmpty();
 });
@@ -29,7 +29,7 @@ test('can get advice from trait methods', function () {
     $badAdvice = $this->giveBadAdvice();
     $goodAdvice = $this->giveGoodAdvice();
     $randomAdvice = $this->giveAdvice();
-    
+
     expect($badAdvice)->toBeString()
         ->not->toBeEmpty();
     expect($goodAdvice)->toBeString()

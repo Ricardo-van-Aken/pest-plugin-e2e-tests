@@ -42,7 +42,7 @@ test('profile information can be updated', function () {
 test('email verification status is unchanged when the email address is unchanged', function () {
     $user = User::factory()->withoutTwoFactor()->create();
 
-    // Make sure email is verified	
+    // Make sure email is verified
     $emailVerifiedAt = $user->email_verified_at;
     $this->assertNotNull($emailVerifiedAt);
 
@@ -83,7 +83,7 @@ test('correct password must be provided to delete account', function () {
     $user = User::factory()->withoutTwoFactor()->create();
 
     $builder = $this->httpRequestBuilder()->actingAs($user);
-    
+
     // First visit the profile page
     $builder->get(route('profile.edit'))->send();
 
@@ -98,4 +98,3 @@ test('correct password must be provided to delete account', function () {
     // User should not be deleted
     $this->assertNotNull(User::find($user->id));
 });
-

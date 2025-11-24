@@ -5,7 +5,6 @@ namespace RicardoVanAken\PestPluginE2ETests;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
-use GuzzleHttp\Psr7\Response;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Log;
 use Psr\Http\Message\RequestInterface;
@@ -14,10 +13,13 @@ use Psr\Http\Message\ResponseInterface;
 class HttpRequestBuilder
 {
     private Client $client;
+
     /** @var array{method?: string, uri?: string, params?: array<string, mixed>} */
     private array $pendingRequest = [];
+
     /** @var array<string, string> */
     private array $headers = [];
+
     private ?string $xsrfToken = null;
 
     public function __construct(Client $client)
@@ -45,8 +47,7 @@ class HttpRequestBuilder
     }
 
     /**
-     * @param string $uri
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      * @return $this
      */
     public function get(string $uri, array $params = []): self
@@ -56,12 +57,12 @@ class HttpRequestBuilder
             'uri' => $uri,
             'params' => $params,
         ];
+
         return $this;
     }
 
     /**
-     * @param string $uri
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      * @return $this
      */
     public function post(string $uri, array $params = []): self
@@ -71,12 +72,12 @@ class HttpRequestBuilder
             'uri' => $uri,
             'params' => $params,
         ];
+
         return $this;
     }
 
     /**
-     * @param string $uri
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      * @return $this
      */
     public function patch(string $uri, array $params = []): self
@@ -86,12 +87,12 @@ class HttpRequestBuilder
             'uri' => $uri,
             'params' => $params,
         ];
+
         return $this;
     }
 
     /**
-     * @param string $uri
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      * @return $this
      */
     public function put(string $uri, array $params = []): self
@@ -101,12 +102,12 @@ class HttpRequestBuilder
             'uri' => $uri,
             'params' => $params,
         ];
+
         return $this;
     }
 
     /**
-     * @param string $uri
-     * @param array<string, mixed> $params
+     * @param  array<string, mixed>  $params
      * @return $this
      */
     public function delete(string $uri, array $params = []): self
@@ -116,6 +117,7 @@ class HttpRequestBuilder
             'uri' => $uri,
             'params' => $params,
         ];
+
         return $this;
     }
 
@@ -134,23 +136,22 @@ class HttpRequestBuilder
     public function refreshXsrf(): self
     {
         $this->xsrfToken = $this->getXsrfToken();
+
         return $this;
     }
 
     /**
-     * @param array<string, string> $headers
+     * @param  array<string, string>  $headers
      * @return $this
      */
     public function withHeaders(array $headers): self
     {
         $this->headers = array_merge($this->headers, $headers);
+
         return $this;
     }
 
     /**
-     * @param Authenticatable $user
-     * @param string $password
-     * @param string|null $recoveryCode
      * @return $this
      */
     public function actingAs(Authenticatable $user, string $password = 'password', ?string $recoveryCode = null): self
@@ -158,33 +159,33 @@ class HttpRequestBuilder
         // Get the login post url
         /** @var string $loginUrl */
         $loginUrl = config('e2e-testing.login_route', '/login');
-        if (!str_starts_with($loginUrl, '/')) {
+        if (! str_starts_with($loginUrl, '/')) {
             try {
                 $loginUrl = route($loginUrl);
             } catch (\Exception $e) {
-                throw new \Exception('Login route in config e2e-testing does not exist: ' . $loginUrl);
+                throw new \Exception('Login route in config e2e-testing does not exist: '.$loginUrl);
             }
         }
 
         // Get the 2FA challenge post url
         /** @var string $twoFactorChallengeUrl */
         $twoFactorChallengeUrl = config('e2e-testing.two_factor_challenge_route', '/two-factor-challenge');
-        if (!str_starts_with($twoFactorChallengeUrl, '/')) {
+        if (! str_starts_with($twoFactorChallengeUrl, '/')) {
             try {
                 $twoFactorChallengeUrl = route($twoFactorChallengeUrl);
             } catch (\Exception $e) {
-                throw new \Exception('Two factor challenge route in config e2e-testing does not exist: ' . $twoFactorChallengeUrl);
+                throw new \Exception('Two factor challenge route in config e2e-testing does not exist: '.$twoFactorChallengeUrl);
             }
         }
 
         // Get the 2FA challenge location url
         /** @var string $twoFactorChallengeLocation */
         $twoFactorChallengeLocation = config('e2e-testing.two_factor_challenge_location_route', '/two-factor-challenge');
-        if (!str_starts_with($twoFactorChallengeLocation, '/')) {
+        if (! str_starts_with($twoFactorChallengeLocation, '/')) {
             try {
                 $twoFactorChallengeLocation = route($twoFactorChallengeLocation);
             } catch (\Exception $e) {
-                throw new \Exception('Two factor challenge location route in config e2e-testing does not exist: ' . $twoFactorChallengeLocation);
+                throw new \Exception('Two factor challenge location route in config e2e-testing does not exist: '.$twoFactorChallengeLocation);
             }
         }
 
@@ -202,9 +203,9 @@ class HttpRequestBuilder
         if (str_contains($loginRedirect, $loginUrl)) {
             $body = (string) $loginResponse->getBody();
             throw new \Exception(
-                'Login failed - redirected back to login page. ' .
-                'This usually means invalid credentials or validation errors. ' .
-                'Response: ' . (strlen($body) > 200 ? substr($body, 0, 200) . '...' : $body)
+                'Login failed - redirected back to login page. '.
+                'This usually means invalid credentials or validation errors. '.
+                'Response: '.(strlen($body) > 200 ? substr($body, 0, 200).'...' : $body)
             );
         }
 
@@ -223,9 +224,9 @@ class HttpRequestBuilder
             if (str_contains($twoFactorRedirect, $twoFactorChallengeUrl)) {
                 $body = (string) $twoFactorChallengeResponse->getBody();
                 throw new \Exception(
-                    '2FA challenge failed - redirected back to 2FA challenge page. ' .
-                    'This usually means invalid recovery code or validation errors. ' .
-                    'Response: ' . (strlen($body) > 200 ? substr($body, 0, 200) . '...' : $body)
+                    '2FA challenge failed - redirected back to 2FA challenge page. '.
+                    'This usually means invalid recovery code or validation errors. '.
+                    'Response: '.(strlen($body) > 200 ? substr($body, 0, 200).'...' : $body)
                 );
             }
 
@@ -238,7 +239,7 @@ class HttpRequestBuilder
 
     public function send(): ResponseInterface
     {
-        if (!isset($this->pendingRequest['method']) || !isset($this->pendingRequest['uri'])) {
+        if (! isset($this->pendingRequest['method']) || ! isset($this->pendingRequest['uri'])) {
             throw new \Exception('HTTP method and URI must be set before calling send().');
         }
 
@@ -278,7 +279,7 @@ class HttpRequestBuilder
             $headers['X-CSRF-TOKEN'] = $this->xsrfToken;
         }
         // Merge any custom headers that were set via withHeaders()
-        if (!empty($this->headers)) {
+        if (! empty($this->headers)) {
             $headers = array_merge($headers, $this->headers);
         }
         // Always add the X-TESTING header to make sure the application receiving the request knows it's a testing request.
@@ -302,4 +303,3 @@ class HttpRequestBuilder
         return $this->send();
     }
 }
-

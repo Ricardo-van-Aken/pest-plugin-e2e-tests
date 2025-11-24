@@ -64,8 +64,8 @@ trait Advice // @phpstan-ignore-line
     public function giveAdvice(): string
     {
         $isGood = (bool) random_int(0, 1);
-        
-        return $isGood 
+
+        return $isGood
             ? self::$goodAdvices[array_rand(self::$goodAdvices)]
             : self::$badAdvices[array_rand(self::$badAdvices)];
     }

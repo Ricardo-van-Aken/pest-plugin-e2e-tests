@@ -40,4 +40,3 @@ function advice(): string
 {
     return test()->giveAdvice(); // @phpstan-ignore-line
 }
-

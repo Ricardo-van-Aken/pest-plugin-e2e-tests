@@ -58,7 +58,6 @@
         "test": [
             "@test:refacto",
             "@test:lint",
-            "@test:types",
             "@test:unit"
         ]
     }

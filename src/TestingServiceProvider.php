@@ -94,6 +94,4 @@ class TestingServiceProvider extends ServiceProvider
             });
         });
     }
-
 }
-

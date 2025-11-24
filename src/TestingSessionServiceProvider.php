@@ -76,8 +76,8 @@ class TestingSessionServiceProvider extends ServiceProvider
             default:
                 // Unknown session driver, log a warning
                 Log::warning(
-                    "[LaravelIntegrationTesting] Unknown session driver '{$sessionDriver}'. " .
-                    "Session isolation for testing may not work correctly."
+                    "[LaravelIntegrationTesting] Unknown session driver '{$sessionDriver}'. ".
+                    'Session isolation for testing may not work correctly.'
                 );
                 break;
         }
@@ -95,13 +95,13 @@ class TestingSessionServiceProvider extends ServiceProvider
         // If a store is specified, we need to switch the cache store's Redis connection
         if ($sessionStore) {
             $cacheStoreConfig = config("cache.stores.{$sessionStore}", []);
-            
+
             // If the store uses Redis, switch its connection
             if (isset($cacheStoreConfig['driver']) && $cacheStoreConfig['driver'] === 'redis') {
                 $cacheConnection = $cacheStoreConfig['connection'] ?? 'cache';
                 $redisConfig = config("database.redis.{$cacheConnection}", []);
 
-                if (!empty($redisConfig)) {
+                if (! empty($redisConfig)) {
                     $currentSessionDb = $redisConfig['database'] ?? 1;
                     $testingSessionDb = (int) env('REDIS_SESSION_DB_TESTING', 14);
 
@@ -112,6 +112,7 @@ class TestingSessionServiceProvider extends ServiceProvider
                     }
                 }
             }
+
             return;
         }
 
@@ -120,9 +121,10 @@ class TestingSessionServiceProvider extends ServiceProvider
 
         if (empty($redisConfig)) {
             Log::warning(
-                "[LaravelIntegrationTesting] Redis config not found for session connection '{$sessionConnection}'. " .
-                "Session isolation for testing may not work correctly."
+                "[LaravelIntegrationTesting] Redis config not found for session connection '{$sessionConnection}'. ".
+                'Session isolation for testing may not work correctly.'
             );
+
             return;
         }
 
@@ -132,12 +134,13 @@ class TestingSessionServiceProvider extends ServiceProvider
         // Check if the testing and application redis session databases are the same.
         if ($testingSessionDb === $currentSessionDb) {
             Log::warning(
-                "[LaravelIntegrationTesting] Redis session database for testing is the same as the applications Redis " .
-                "session database. This will cause tests to use the same sessions as the application. " .
-                "\nCurrent database number: {$currentSessionDb}. " .
-                "\nTesting database number: {$testingSessionDb}. " .
+                '[LaravelIntegrationTesting] Redis session database for testing is the same as the applications Redis '.
+                'session database. This will cause tests to use the same sessions as the application. '.
+                "\nCurrent database number: {$currentSessionDb}. ".
+                "\nTesting database number: {$testingSessionDb}. ".
                 "\nPlease set REDIS_SESSION_DB_TESTING to a different database number."
             );
+
             return;
         }
 
@@ -153,7 +156,7 @@ class TestingSessionServiceProvider extends ServiceProvider
     protected function switchDatabaseSessionToTesting(): void
     {
         // Get the current default connection and switch to its _testing version
-        $testingConnection = config('database.default') . '_testing';
+        $testingConnection = config('database.default').'_testing';
 
         // Ensure the testing connection exists
         if (config("database.connections.{$testingConnection}")) {
@@ -184,7 +187,7 @@ class TestingSessionServiceProvider extends ServiceProvider
     {
         // Memcached doesn't support separate databases, so we use a prefix
         // This requires the session prefix to be set differently for tests
-        $testingPrefix = config('session.cookie', 'laravel_session') . '-testing-';
+        $testingPrefix = config('session.cookie', 'laravel_session').'-testing-';
         config([
             'session.cookie' => $testingPrefix,
         ]);
@@ -195,10 +198,9 @@ class TestingSessionServiceProvider extends ServiceProvider
      */
     protected function switchDynamoDBSessionToTesting(): void
     {
-        $testingTable = env('DYNAMODB_SESSION_TABLE', 'sessions') . '_testing';
+        $testingTable = env('DYNAMODB_SESSION_TABLE', 'sessions').'_testing';
         config([
             'session.table' => $testingTable,
         ]);
     }
 }
-

@@ -20,4 +20,3 @@ test('password confirmation requires authentication', function () {
     $this->assertEquals(302, $response->getStatusCode());
     $this->assertStringContainsString(route('login'), $response->getHeaderLine('Location'));
 });
-

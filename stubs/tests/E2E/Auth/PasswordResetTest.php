@@ -93,4 +93,3 @@ test('password cannot be reset with invalid token', function () {
     $this->assertStringContainsString(route('password.reset', 'invalid-token'), $response->getHeaderLine('Location'));
     $this->assertFalse(Hash::check('new-password', $user->fresh()->password));
 });
-

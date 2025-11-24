@@ -76,8 +76,8 @@ class TestingCacheServiceProvider extends ServiceProvider
             default:
                 // Unknown cache driver, log a warning
                 Log::warning(
-                    "[LaravelIntegrationTesting] Unknown cache driver '{$cacheDriver}'. " .
-                    "Cache isolation for testing may not work correctly."
+                    "[LaravelIntegrationTesting] Unknown cache driver '{$cacheDriver}'. ".
+                    'Cache isolation for testing may not work correctly.'
                 );
                 break;
         }
@@ -96,9 +96,10 @@ class TestingCacheServiceProvider extends ServiceProvider
 
         if (empty($redisConfig)) {
             Log::warning(
-                "[LaravelIntegrationTesting] Redis config not found for connection '{$cacheConnection}'. " .
-                "Cache isolation for testing may not work correctly."
+                "[LaravelIntegrationTesting] Redis config not found for connection '{$cacheConnection}'. ".
+                'Cache isolation for testing may not work correctly.'
             );
+
             return;
         }
 
@@ -109,12 +110,13 @@ class TestingCacheServiceProvider extends ServiceProvider
         // Check if the testing and application redis cache databases are the same.
         if ($testingCacheDb === $currentCacheDb) {
             Log::warning(
-                "[LaravelIntegrationTesting] Redis cache database for testing is the same as the applications Redis " .
-                "cache database. This will cause tests to use the same cache as the application. " .
-                "\nCurrent database number: {$currentCacheDb}. " .
-                "\nTesting database number: {$testingCacheDb}. " .
+                '[LaravelIntegrationTesting] Redis cache database for testing is the same as the applications Redis '.
+                'cache database. This will cause tests to use the same cache as the application. '.
+                "\nCurrent database number: {$currentCacheDb}. ".
+                "\nTesting database number: {$testingCacheDb}. ".
                 "\nPlease set REDIS_CACHE_DB_TESTING to a different database number."
             );
+
             return;
         }
 
@@ -130,7 +132,7 @@ class TestingCacheServiceProvider extends ServiceProvider
     protected function switchDatabaseCacheToTesting(): void
     {
         // Get the current default connection and switch to its _testing version
-        $testingConnection = config('database.default') . '_testing';
+        $testingConnection = config('database.default').'_testing';
 
         // Ensure the testing connection exists
         if (config("database.connections.{$testingConnection}")) {
@@ -162,7 +164,7 @@ class TestingCacheServiceProvider extends ServiceProvider
     {
         // Memcached doesn't support separate databases, so we use a prefix
         // This requires the cache prefix to be set differently for tests
-        $testingPrefix = config('cache.prefix', 'laravel') . '-testing-';
+        $testingPrefix = config('cache.prefix', 'laravel').'-testing-';
         config([
             'cache.prefix' => $testingPrefix,
         ]);
@@ -173,10 +175,9 @@ class TestingCacheServiceProvider extends ServiceProvider
      */
     protected function switchDynamoDBCacheToTesting(): void
     {
-        $testingTable = env('DYNAMODB_CACHE_TABLE', 'cache') . '_testing';
+        $testingTable = env('DYNAMODB_CACHE_TABLE', 'cache').'_testing';
         config([
             'cache.stores.dynamodb.table' => $testingTable,
         ]);
     }
 }
-

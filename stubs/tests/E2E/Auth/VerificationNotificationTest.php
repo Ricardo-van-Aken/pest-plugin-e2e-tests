@@ -29,4 +29,3 @@ test('verified users are redirected to the dashboard when requesting a verificat
     $this->assertStringContainsString(route('dashboard', absolute: false), $response->getHeaderLine('Location'));
     $this->assertNotNull($user->fresh()->email_verified_at);
 });
-

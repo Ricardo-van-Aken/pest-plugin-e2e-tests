@@ -19,7 +19,5 @@ test('authenticated users can visit the dashboard', function () {
     $builder = $this->httpRequestBuilder()->actingAs($user);
     $response = $builder->get(route('dashboard'))->send();
 
-    
     $this->assertEquals(200, $response->getStatusCode());
 });
-

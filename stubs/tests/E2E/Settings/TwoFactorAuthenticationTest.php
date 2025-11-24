@@ -44,7 +44,7 @@ test('two factor settings page requires password confirmation when enabled', fun
     $user->forceFill([
         'two_factor_recovery_codes' => encrypt(json_encode(['test-recovery-code-1', 'test-recovery-code-2'])),
     ])->save();
-    
+
     $builder = $this->httpRequestBuilder()->actingAs($user, recoveryCode: 'test-recovery-code-1');
 
     $response = $builder->get(route('two-factor.show'))->send();
@@ -71,7 +71,7 @@ test('two factor settings page does not require password confirmation when disab
     $user->forceFill([
         'two_factor_recovery_codes' => encrypt(json_encode(['test-recovery-code-1', 'test-recovery-code-2'])),
     ])->save();
-    
+
     $builder = $this->httpRequestBuilder()->actingAs($user, recoveryCode: 'test-recovery-code-1');
 
     $response = $builder->get(route('two-factor.show'))->send();
@@ -93,11 +93,10 @@ test('two factor settings page returns forbidden response when two factor is dis
     $user->forceFill([
         'two_factor_recovery_codes' => encrypt(json_encode(['test-recovery-code-1', 'test-recovery-code-2'])),
     ])->save();
-    
+
     $builder = $this->httpRequestBuilder()->actingAs($user, recoveryCode: 'test-recovery-code-1');
 
     $response = $builder->get(route('two-factor.show'))->send();
 
     $this->assertEquals(403, $response->getStatusCode());
 });
-

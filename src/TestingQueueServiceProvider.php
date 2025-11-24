@@ -74,8 +74,8 @@ class TestingQueueServiceProvider extends ServiceProvider
             default:
                 // Unknown queue driver, log a warning
                 Log::warning(
-                    "[LaravelIntegrationTesting] Unknown queue driver '{$queueDriver}'. " .
-                    "Queue isolation for testing may not work correctly."
+                    "[LaravelIntegrationTesting] Unknown queue driver '{$queueDriver}'. ".
+                    'Queue isolation for testing may not work correctly.'
                 );
                 break;
         }
@@ -92,9 +92,10 @@ class TestingQueueServiceProvider extends ServiceProvider
 
         if (empty($redisConfig)) {
             Log::warning(
-                "[LaravelIntegrationTesting] Redis config not found for queue connection '{$redisConnectionName}'. " .
-                "Queue isolation for testing may not work correctly."
+                "[LaravelIntegrationTesting] Redis config not found for queue connection '{$redisConnectionName}'. ".
+                'Queue isolation for testing may not work correctly.'
             );
+
             return;
         }
 
@@ -104,12 +105,13 @@ class TestingQueueServiceProvider extends ServiceProvider
         // Check if the testing and application redis queue databases are the same.
         if ($testingQueueDb === $currentQueueDb) {
             Log::warning(
-                "[LaravelIntegrationTesting] Redis queue database for testing is the same as the applications Redis " .
-                "queue database. This will cause tests to use the same queue as the application. " .
-                "\nCurrent database number: {$currentQueueDb}. " .
-                "\nTesting database number: {$testingQueueDb}. " .
+                '[LaravelIntegrationTesting] Redis queue database for testing is the same as the applications Redis '.
+                'queue database. This will cause tests to use the same queue as the application. '.
+                "\nCurrent database number: {$currentQueueDb}. ".
+                "\nTesting database number: {$testingQueueDb}. ".
                 "\nPlease set REDIS_QUEUE_DB_TESTING to a different database number."
             );
+
             return;
         }
 
@@ -125,7 +127,7 @@ class TestingQueueServiceProvider extends ServiceProvider
     protected function switchDatabaseQueueToTesting(string $queueConnection): void
     {
         // Get the current default connection and switch to its _testing version
-        $testingConnection = config('database.default') . '_testing';
+        $testingConnection = config('database.default').'_testing';
 
         // Ensure the testing connection exists
         if (config("database.connections.{$testingConnection}")) {
@@ -145,10 +147,11 @@ class TestingQueueServiceProvider extends ServiceProvider
 
         if ($testingQueueName === null) {
             Log::warning(
-                "[LaravelIntegrationTesting] SQS queue driver does not have a testing queue configured. " .
-                "Set SQS_QUEUE_TESTING in your application's environment to use a separate queue for testing. " .
-                "Without this, tests will use the same queue as the application."
+                '[LaravelIntegrationTesting] SQS queue driver does not have a testing queue configured. '.
+                "Set SQS_QUEUE_TESTING in your application's environment to use a separate queue for testing. ".
+                'Without this, tests will use the same queue as the application.'
             );
+
             return;
         }
 
@@ -167,10 +170,11 @@ class TestingQueueServiceProvider extends ServiceProvider
 
         if ($testingQueueName === null) {
             Log::warning(
-                "[LaravelIntegrationTesting] Beanstalkd queue driver does not have a testing queue configured. " .
-                "Set BEANSTALKD_QUEUE_TESTING in your application's environment to use a separate queue for testing. " .
-                "Without this, tests will use the same queue as the application."
+                '[LaravelIntegrationTesting] Beanstalkd queue driver does not have a testing queue configured. '.
+                "Set BEANSTALKD_QUEUE_TESTING in your application's environment to use a separate queue for testing. ".
+                'Without this, tests will use the same queue as the application.'
             );
+
             return;
         }
 
@@ -180,4 +184,3 @@ class TestingQueueServiceProvider extends ServiceProvider
         ]);
     }
 }
-

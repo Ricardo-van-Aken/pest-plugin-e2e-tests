@@ -2,8 +2,6 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Log;
-use GuzzleHttp\Client;
 
 test('email verification screen can be rendered', function () {
     $user = User::factory()->unverified()->withoutTwoFactor()->create();
@@ -23,7 +21,7 @@ test('email can be verified', function () {
         ['id' => $user->id, 'hash' => sha1($user->email)]
     );
     $builder = $this->httpRequestBuilder()->actingAs($user);
-    
+
     // Now try builder method to compare
     $response = $builder->get($verificationUrl)->send();
 
@@ -103,4 +101,3 @@ test('already verified user visiting verification link is redirected without cha
     $this->assertStringContainsString(route('dashboard', absolute: false), $response->getHeaderLine('Location'));
     $this->assertTrue($user->fresh()->hasVerifiedEmail());
 });
-
