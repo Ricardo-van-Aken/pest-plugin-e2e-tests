@@ -4,12 +4,12 @@ services:
     image: ${IMAGE_REPO}:laravel-app.latest
     build:
       context: ../
-      dockerfile: docker/img_laravel/${DOCKERFILE}
+      dockerfile: docker/img_laravel/Dockerfile.laravel-volume
     container_name: laravel_app
     restart: unless-stopped
     volumes:
-      - ./img_laravel/${ENV_FILE}:/var/www/.env     # Bind mount: Application environment variables
-      - ${APP_FILES_DIR}:/var/www     # Volume or Bind mount: Application files to be served by nginx
+      - ./img_laravel/${ENV_FILE}:/var/www/.env    # Bind mount: Application environment variables
+      - app_files:/var/www                         # Volume: Application files to be served by nginx
     environment:
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
@@ -23,7 +23,7 @@ services:
 
   # Nginx Web Server
   nginx:
-    image: ${IMAGE_REPO}:website-nginx.latest
+    image: ${IMAGE_REPO}:nginx.latest
     build:
       context: ./img_nginx
       dockerfile: Dockerfile.nginx
@@ -33,8 +33,7 @@ services:
       - "80:80"     # HTTP
       - "443:443"   # HTTPS
     volumes:
-      - ${APP_FILES_DIR}:/var/www           # Volume or Bind mount: Application files to be served by nginx
-      - certbot_files:/var/www/certbot/:ro  # Volume: Certbot files to be served by nginx (for confirming domain ownership)
+      - app_files:/var/www                  # Volume: Application files to be served by nginx
       - certbot_certs:/etc/nginx/ssl/:ro    # Volume: Https certificates from certs container
     depends_on:
       - app
@@ -68,8 +67,8 @@ services:
     restart: unless-stopped
     environment:
       PMA_HOST: db  # Must be the same as container_name of the db
-      PMA_USER=${DB_USERNAME}
-      PMA_PASSWORD=${DB_PASSWORD}
+      PMA_USER: "${DB_USERNAME}"
+      PMA_PASSWORD: "${DB_PASSWORD}"
     ports:
       - 8080:80
     depends_on:
@@ -82,8 +81,8 @@ services:
     restart: unless-stopped
     environment:
       PMA_HOST: db  # Must be the same as container_name of the db
-      PMA_USER=${DB_TEST_USERNAME}
-      PMA_PASSWORD=${DB_TEST_PASSWORD}
+      PMA_USER: "${DB_TEST_USERNAME}"
+      PMA_PASSWORD: "${DB_TEST_PASSWORD}"
     ports:
       - 8081:80
     depends_on:
@@ -95,10 +94,8 @@ services:
     image: redis:alpine
     container_name: redis
     restart: unless-stopped
-    secrets:
-      - redis_password
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
     command:
       - /bin/sh
       - -c

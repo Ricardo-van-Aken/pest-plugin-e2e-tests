@@ -85,7 +85,7 @@ for PROFILE in $PROFILES; do
 done
 
 # Build the base laravel application image if it doesn't exist or Dockerfile.base has changed
-docker build -f docker/img_laravel/Dockerfile.laravel-base -t local/starterkit.laravel-react-docker:laravel-base.latest .
+docker build -f docker/img_laravel/Dockerfile.laravel-base -t local/e2e-tests:laravel-base.latest .
 
 # Remove volumes for the selected profiles (clean start)
 docker compose -f "$COMPOSE_FILE" $PROFILE_FLAGS down -v --remove-orphans

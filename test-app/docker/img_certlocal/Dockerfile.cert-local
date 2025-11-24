@@ -1,0 +1,10 @@
+# Official alpine:latest image from Docker Hub - October 2025
+FROM alpine@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412
+
+RUN apk add --no-cache openssl
+
+COPY scripts/generate_cert.sh /usr/local/bin/generate_cert.sh
+
+RUN chmod +x /usr/local/bin/generate_cert.sh
+
+CMD ["/usr/local/bin/generate_cert.sh"]
