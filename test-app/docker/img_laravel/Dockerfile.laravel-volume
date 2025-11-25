@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=local/e2e-tests:laravel-base.latest
+ARG BASE_IMAGE=local/starterkit.laravel-react-docker:laravel-base.latest
 
 #################################################
 ###                                           ###
@@ -7,19 +7,20 @@ ARG BASE_IMAGE=local/e2e-tests:laravel-base.latest
 #################################################
 # Official Node 24.11 alpine image from Docker Hub - 13 November 2025
 FROM node@sha256:d7a3af308e4006ba6d66bbae980fe39c118049b4a5eeaac8fa89e00944a2496b
+ARG LARAVEL_ROOT=test-app/laravel_root
 
 # Set working directory
 WORKDIR /var/www
 
 # Copy package.json and package-lock.json for building js dependencies
-COPY laravel_root/package.json laravel_root/package-lock.json ./
-COPY laravel_root/vite.config.* ./
+COPY ${LARAVEL_ROOT}/package.json ${LARAVEL_ROOT}/package-lock.json ./
+COPY ${LARAVEL_ROOT}/vite.config.* ./
 
 # Install npm dependencies
 RUN npm ci
 
 # Copy the entire resources directory for the build
-COPY laravel_root/resources ./resources
+COPY ${LARAVEL_ROOT}/resources ./resources
 
 # Install npm dependencies
 RUN npm install
@@ -31,25 +32,34 @@ RUN npm install
 ###                                           ###
 #################################################
 FROM ${BASE_IMAGE}
+ARG LARAVEL_ROOT=test-app/laravel_root
+ARG PACKAGE_ROOT=package
 
 # Switch to www user
 USER www-data
 
-# Copy composer files
-COPY --chown=www-data:www-data laravel_root/composer.json laravel_root/composer.lock ./
+# Copy the Laravel application files(.dockerignore ignores the node_modules, public/build and vendor folders)
+COPY --chown=www-data:www-data ${LARAVEL_ROOT}/ .
 
-RUN composer install --no-scripts
+# Replace composer.json with composer-docker.json
+COPY --chown=www-data:www-data ${LARAVEL_ROOT}/composer-docker.json ./composer.json
+
+# Copy node_modules from the Node stage
+COPY --chown=www-data:www-data --from=0 /var/www/node_modules ./node_modules
+
+# Copy package (source path is relative to build context, destination is absolute in image)
+COPY --chown=www-data:www-data ${PACKAGE_ROOT} /package
+
+# Install composer dependencies
+RUN composer install
 
 # The tests are ran with Pest, which requires write access to the pest directory, so we give the testrunner access
 # to the pest directory
 RUN chgrp -R shared /var/www/vendor/pestphp && \
     chmod -R 770 /var/www/vendor/pestphp
 
-# Copy node_modules from the Node stage
-COPY --chown=www-data:www-data --from=0 /var/www/node_modules ./node_modules
-
-# Copy the Laravel application files(.dockerignore ignores the node_modules, public/build and vendorfolders)
-COPY --chown=www-data:www-data laravel_root/ .
+# Publish E2E test assets from the package (tests and PHPUnit config)
+RUN php artisan vendor:publish --tag=e2e-tests --tag=e2e-testing-phpunit --force
 
 # Build main app assets into the public folder (currently using vite)
 RUN npm run build
@@ -60,7 +70,3 @@ RUN chown -R www-data:shared /var/www/storage/logs \
 # Give testrunner full access to compiled blade views
 RUN chown -R www-data:shared /var/www/storage/framework/views \
     && chmod -R 770 /var/www/storage/framework/views
-
-# Run composer scripts after all files are in place
-RUN composer run-script post-autoload-dump
-

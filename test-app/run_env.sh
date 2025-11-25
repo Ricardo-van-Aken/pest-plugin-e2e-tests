@@ -25,70 +25,23 @@ if [ -z "$SESSION_OPTION" ]; then
   exit 1
 fi
 
-COMPOSE_FILE="docker/docker-compose.yml"
+# Build the docker-compose env file for the requested stack combination.
+./docker/scripts/build_compose_env.sh "$DB_OPTION" "$CACHE_OPTION" "$QUEUE_OPTION" "$SESSION_OPTION"
 
-PROFILES="core"
+# Build the Laravel application's .env file that will be bind-mounted into the container.
+./docker/scripts/build_laravel_env.sh "$DB_OPTION" "$CACHE_OPTION" "$QUEUE_OPTION" "$SESSION_OPTION"
 
-add_profile() {
-  PROFILE_NAME="$1"
-  if [ -n "$PROFILE_NAME" ]; then
-    case " $PROFILES " in
-      *" $PROFILE_NAME "*) ;;
-      *) PROFILES="$PROFILES $PROFILE_NAME" ;;
-    esac
-  fi
-}
+# Build the base laravel application image if it doesn't exist or Dockerfile.base has changed. Uses IMAGE_REPO from the env file.
+set -a
+. "docker/.env"
+set +a
+docker build -f docker/img_laravel/Dockerfile.laravel-base -t "${IMAGE_REPO}:laravel-base.latest" .
 
-case "$DB_OPTION" in
-  mysql) add_profile "db-mysql" ;;
-  sqlite) ;;
-  *)
-    echo "Unsupported DB option: $DB_OPTION"
-    echo "Supported DB options: mysql, sqlite"
-    exit 1
-    ;;
-esac
-
-case "$CACHE_OPTION" in
-  redis) add_profile "cache-redis" ;;
-  array) ;;
-  *)
-    echo "Unsupported cache option: $CACHE_OPTION"
-    echo "Supported cache options: redis, array"
-    exit 1
-    ;;
-esac
-
-case "$QUEUE_OPTION" in
-  redis) add_profile "queue-redis" ;;
-  sync) ;;
-  *)
-    echo "Unsupported queue option: $QUEUE_OPTION"
-    echo "Supported queue options: redis, sync"
-    exit 1
-    ;;
-esac
-
-case "$SESSION_OPTION" in
-  redis) add_profile "session-redis" ;;
-  array) ;;
-  *)
-    echo "Unsupported session option: $SESSION_OPTION"
-    echo "Supported session options: redis, array"
-    exit 1
-    ;;
-esac
-
-PROFILE_FLAGS=""
-for PROFILE in $PROFILES; do
-  PROFILE_FLAGS="$PROFILE_FLAGS --profile $PROFILE"
-done
-
-# Build the base laravel application image if it doesn't exist or Dockerfile.base has changed
-docker build -f docker/img_laravel/Dockerfile.laravel-base -t local/e2e-tests:laravel-base.latest .
+# Build the profile flags for the requested stack combination.
+PROFILE_FLAGS="$(./docker/scripts/build_profile_flags.sh "$DB_OPTION" "$CACHE_OPTION" "$QUEUE_OPTION" "$SESSION_OPTION")"
 
 # Remove volumes for the selected profiles (clean start)
-docker compose -f "$COMPOSE_FILE" $PROFILE_FLAGS down -v --remove-orphans
+docker compose -f "docker/docker-compose.yml" $PROFILE_FLAGS down -v --remove-orphans
 
 # Run docker compose with the selected profiles
-docker compose -f "$COMPOSE_FILE" $PROFILE_FLAGS up -d --build
+docker compose -f "docker/docker-compose.yml" $PROFILE_FLAGS up -d --build

@@ -1,0 +1,13 @@
+# Ignore vendor and node_modules from laravel_root
+test-app/laravel_root/vendor
+test-app/laravel_root/node_modules
+
+# Also ignore common build artifacts and cache directories
+test-app/laravel_root/public/build
+# test-app/laravel_root/storage/framework/cache
+# test-app/laravel_root/storage/framework/sessions
+# test-app/laravel_root/storage/framework/views
+
+# Generated docker environment files
+test-app/docker/.env
+test-app/docker/img_laravel/.env.*

@@ -1,14 +1,14 @@
 services:
-  # Laravel Application
+  # Laravel Application. Context is the root of the project, since we require access to the package.
   app:
     image: ${IMAGE_REPO}:laravel-app.latest
     build:
-      context: ../
-      dockerfile: docker/img_laravel/Dockerfile.laravel-volume
+      context: ../../
+      dockerfile: test-app/docker/img_laravel/Dockerfile.laravel-volume
     container_name: laravel_app
     restart: unless-stopped
     volumes:
-      - ./img_laravel/${ENV_FILE}:/var/www/.env    # Bind mount: Application environment variables
+      - ./img_laravel/.env:/var/www/.env    # Bind mount: Application environment variables
       - app_files:/var/www                         # Volume: Application files to be served by nginx
     environment:
       - DB_DATABASE=${DB_DATABASE}
@@ -138,3 +138,4 @@ services:
 volumes:
   app_files:
   certbot_certs:
+  package_files:
