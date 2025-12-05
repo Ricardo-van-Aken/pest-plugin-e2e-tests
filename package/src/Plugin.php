@@ -6,6 +6,7 @@ namespace RicardoVanAken\PestPluginE2ETests;
 
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Pest\Contracts\Plugins\Bootable;
+use RicardoVanAken\PestPluginE2ETests\Testing\E2ETestCase;
 
 /**
  * @internal

@@ -1,6 +1,6 @@
 <?php
 
-namespace RicardoVanAken\PestPluginE2ETests;
+namespace RicardoVanAken\PestPluginE2ETests\Testing;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
@@ -190,20 +190,31 @@ class HttpRequestBuilder
         }
 
         // Log in the user
-        // Get email - try property first, then getAuthIdentifier if property doesn't exist
+        // Get email from user object
+        if (! isset($user->email) || empty($user->email)) {
+            throw new \Exception('User object must have an email attribute to login. getAuthIdentifier() returns the ID, not the email.');
+        }
         /** @var string $email */
-        $email = property_exists($user, 'email') && isset($user->email) ? (string) $user->email : (string) $user->getAuthIdentifier();
+        $email = (string) $user->email;
+        
+        // Build full URL for Referer header
+        $baseUrl = config('app.url', 'http://localhost');
+        $refererUrl = str_starts_with($loginUrl, 'http') 
+            ? $loginUrl 
+            : rtrim($baseUrl, '/').'/'.ltrim($loginUrl, '/');
+        
         $loginResponse = $this->post($loginUrl, [
             'email' => $email,
             'password' => $password,
-        ])->send();
+        ])->withHeaders(['Referer' => $refererUrl])->send();
+        
         $loginRedirect = $loginResponse->getHeaderLine('Location');
 
         // Check if login failed
         if (str_contains($loginRedirect, $loginUrl)) {
             $body = (string) $loginResponse->getBody();
             throw new \Exception(
-                'Login failed - redirected back to login page. '.
+                'Login failed - redirected back to previous page. '.
                 'This usually means invalid credentials or validation errors. '.
                 'Response: '.(strlen($body) > 200 ? substr($body, 0, 200).'...' : $body)
             );

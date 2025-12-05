@@ -6,6 +6,7 @@ namespace RicardoVanAken\PestPluginE2ETests;
 
 use Pest\Plugin;
 use PHPUnit\Framework\TestCase;
+use RicardoVanAken\PestPluginE2ETests\Support\Advice;
 
 Plugin::uses(Advice::class);
 

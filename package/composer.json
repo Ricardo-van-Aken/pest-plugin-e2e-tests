@@ -41,11 +41,11 @@
     "extra": {
         "laravel": {
             "providers": [
-                "RicardoVanAken\\PestPluginE2ETests\\TestingServiceProvider",
-                "RicardoVanAken\\PestPluginE2ETests\\TestingDatabaseServiceProvider",
-                "RicardoVanAken\\PestPluginE2ETests\\TestingCacheServiceProvider",
-                "RicardoVanAken\\PestPluginE2ETests\\TestingSessionServiceProvider",
-                "RicardoVanAken\\PestPluginE2ETests\\TestingQueueServiceProvider"
+                "RicardoVanAken\\PestPluginE2ETests\\Providers\\TestingServiceProvider",
+                "RicardoVanAken\\PestPluginE2ETests\\Providers\\TestingDatabaseServiceProvider",
+                "RicardoVanAken\\PestPluginE2ETests\\Providers\\TestingCacheServiceProvider",
+                "RicardoVanAken\\PestPluginE2ETests\\Providers\\TestingSessionServiceProvider",
+                "RicardoVanAken\\PestPluginE2ETests\\Providers\\TestingQueueServiceProvider"
             ]
         }
     },

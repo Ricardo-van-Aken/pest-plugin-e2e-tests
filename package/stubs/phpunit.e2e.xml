@@ -41,14 +41,14 @@
         receiving a test request. For example, if your default connection is "mysql", it will use "mysql_testing".
         We want the tests code to use this same database connection.
         -->
-        <env name="DB_CONNECTION" value="mysql_testing"/>
+        <!-- <env name="DB_CONNECTION" value="mysql_testing"/> -->
         <!-- <env name="DB_CONNECTION" value="pgsql_testing"/> -->
         <!-- <env name="DB_CONNECTION" value="sqlite_testing"/> -->
         
         <!-- Mail Configuration
         There is currently no support for sending actual emails during tests.
         -->
-        <env name="MAIL_MAILER" value="array"/>
+        <!-- <env name="MAIL_MAILER" value="array"/> -->
         
         <!-- Redis Cache Configuration
         Only uncomment if you use Redis for caching.
@@ -56,7 +56,7 @@
         when it receives a test request. This database number is set in the application's environment with
         REDIS_CACHE_DB_TESTING(default: 15). We want the tests code to use this same database number.
         -->
-        <env name="REDIS_CACHE_DB" value="15"/>
+        <!-- <env name="REDIS_CACHE_DB" value="15"/> -->
 
         <!-- Other Cache Drivers
         The plugin automatically handles isolation for other cache drivers(no configuration needed):
@@ -73,7 +73,7 @@
         when it receives a test request. This database number is set in the application's environment with
         REDIS_SESSION_DB_TESTING(default: 14). We want the tests code to use this same database number.
         -->
-        <env name="REDIS_SESSION_DB" value="14"/>
+        <!-- <env name="REDIS_SESSION_DB" value="14"/> -->
 
         <!-- Other Session Drivers
         The plugin automatically handles isolation for other session drivers(no configuration needed):
@@ -91,7 +91,7 @@
         when it receives a test request. This database number is set in the application's environment with
         REDIS_QUEUE_DB_TESTING(default: 13). We want the tests code to use this same database number.
         -->
-        <env name="REDIS_QUEUE_DB" value="13"/>
+        <!-- <env name="REDIS_QUEUE_DB" value="13"/> -->
 
         <!-- Other Queue Drivers
         The plugin automatically handles isolation for other queue drivers(no configuration needed):

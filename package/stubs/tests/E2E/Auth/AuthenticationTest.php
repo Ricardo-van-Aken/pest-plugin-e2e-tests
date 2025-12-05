@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Log;
 
 test('login screen can be rendered', function () {
     $builder = $this->httpRequestBuilder();
@@ -14,7 +15,7 @@ test('users can authenticate using the login screen', function () {
     // Create a user without two factor enabled, and attempt to login
     $user = User::factory()->withoutTwoFactor()->create();
 
-    $builder = $this->httpRequestBuilder();
+    $builder = $this->httpRequestBuilder()->withRequestLogging();
     $response = $builder->post(route('login.store'), [
         'email' => $user->email,
         'password' => 'password',
@@ -27,6 +28,15 @@ test('users can authenticate using the login screen', function () {
     // Verify user is authenticated by checking a protected route after refreshing the xsrf token
     $builder->refreshXsrf();
     $response = $builder->post('/test/requires-auth')->send();
+
+    // Log response for debugging
+    $body = (string) $response->getBody();
+    Log::info('=== /test/requires-auth RESPONSE ===', [
+        'status_code' => $response->getStatusCode(),
+        'headers' => $response->getHeaders(),
+        'body' => $body,
+        'location' => $response->getHeaderLine('Location'),
+    ]);
 
     $this->assertEquals(200, $response->getStatusCode());
     $this->assertEquals(['success' => true], json_decode($response->getBody(), true));
