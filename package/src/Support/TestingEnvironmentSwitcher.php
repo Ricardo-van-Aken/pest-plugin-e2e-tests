@@ -4,6 +4,7 @@ namespace RicardoVanAken\PestPluginE2ETests\Support;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use RicardoVanAken\PestPluginE2ETests\Support\TestingConnectionNaming;
 
 /**
  * Central place to handle switching application environment concerns for tests:
@@ -20,6 +21,11 @@ class TestingEnvironmentSwitcher
         static::switchQueueConnection();
         static::switchSessionConnection();
         static::switchCacheStore();
+
+        // Clear the session manager's handler cache so it rebuilds with the new connection
+        // This is necessary because Laravel caches the handler instance
+        // NOTE: This code should obe used when we use middleware to switch the storage
+        // TestingEnvironmentSwitcher::resetSessionHandler();
     }
 
     /**
@@ -27,20 +33,22 @@ class TestingEnvironmentSwitcher
      */
     public static function switchDatabaseConnection(): void
     {
-        $testingConnection = static::getTestingDatabaseConnection();
+        $testingConnection = TestingConnectionNaming::getTestingDatabaseConnection();
 
         if (config("database.connections.{$testingConnection}")) {
             config(['database.default' => $testingConnection]);
+            
             Log::info(
                 "[LaravelE2ETesting] Switched to testing database connection '{$testingConnection}'."
             );
-            return;
+        } else {
+            throw new \RuntimeException("[LaravelE2ETesting] " .
+                "Testing database connection '{$testingConnection}' not found. " .
+                "Ensure TestingDatabaseServiceProvider has created this connection."
+            );
         }
 
-        Log::warning(
-            "[LaravelIntegrationTesting] Testing database connection '{$testingConnection}' not found. ".
-            'Skipping test storage switch. Ensure TestingDatabaseServiceProvider has created this connection.'
-        );
+        return;
     }
 
     /**
@@ -48,20 +56,22 @@ class TestingEnvironmentSwitcher
      */
     public static function switchCacheStore(): void
     {
-        $testingStore = static::getTestingCacheStore();
+        $testingStore = TestingConnectionNaming::getTestingCacheStore();
 
         if (config("cache.stores.{$testingStore}")) {
             config(['cache.default' => $testingStore]);
+            
             Log::info(
                 "[LaravelE2ETesting] Switched to testing cache store '{$testingStore}'."
             );
-            return;
+        } else {
+            throw new \RuntimeException("[LaravelE2ETesting] " .
+                "Testing cache store '{$testingStore}' not found. " .
+                "Ensure TestingCacheServiceProvider has created this store."
+            );
         }
 
-        Log::warning(
-            "[LaravelIntegrationTesting] Testing cache store '{$testingStore}' not found. ".
-            'Skipping test storage switch. Ensure TestingCacheServiceProvider has created this store.'
-        );
+        return;
     }
 
     /**
@@ -69,20 +79,21 @@ class TestingEnvironmentSwitcher
      */
     public static function switchQueueConnection(): void
     {
-        $testingConnection = static::getTestingQueueConnection();
+        $testingConnection = TestingConnectionNaming::getTestingQueueConnection();
 
         if (config("queue.connections.{$testingConnection}")) {
             config(['queue.default' => $testingConnection]);
             Log::info(
                 "[LaravelE2ETesting] Switched to testing queue connection '{$testingConnection}'."
             );
-            return;
+        } else {
+            throw new \RuntimeException("[LaravelE2ETesting] " .
+                "Testing queue connection '{$testingConnection}' not found. " .
+                "Ensure TestingQueueServiceProvider has created this connection."
+            );
         }
 
-        Log::warning(
-            "[LaravelIntegrationTesting] Testing queue connection '{$testingConnection}' not found. ".
-            'Skipping test storage switch. Ensure TestingQueueServiceProvider has created this connection.'
-        );
+        return;
     }
 
     /**
@@ -90,26 +101,44 @@ class TestingEnvironmentSwitcher
      */
     public static function switchSessionConnection(): void
     {
+
         $driver = config('session.driver');
 
         switch ($driver) {
             case 'redis':
-                $testingConnection = static::getTestingSessionConnection();
+                $testingConnection = TestingConnectionNaming::getTestingSessionConnection('redis');
 
                 if (config("database.redis.{$testingConnection}")) {
                     config(['session.connection' => $testingConnection]);
-
-                    Log::info(
-                        "[LaravelE2ETesting] Switched to testing Redis session connection '{$testingConnection}'."
+                    
+                    Log::info("[LaravelE2ETesting] " . 
+                        "Switched to testing Redis session connection '{$testingConnection}'."
                     );
-
-                    return;
+                } else {
+                    throw new \RuntimeException("[LaravelE2ETesting] " .
+                        "Testing Redis session connection '{$testingConnection}' not found. " .
+                        "Ensure TestingSessionServiceProvider has created this connection."
+                    );
                 }
 
-                Log::warning(
-                    "[LaravelIntegrationTesting] Testing Redis session connection '{$testingConnection}' not found. ".
-                    'Skipping test storage switch. Ensure TestingSessionServiceProvider has created this connection.'
-                );
+                break;
+
+            case 'database':
+                $testingConnection = TestingConnectionNaming::getTestingSessionConnection('database');
+
+                if (config("database.connections.{$testingConnection}")) {
+                    config(['session.connection' => $testingConnection]);
+
+                    Log::info("[LaravelE2ETesting] " . 
+                        "Switched to testing database session connection '{$testingConnection}'."
+                    );
+                } else {
+                    throw new \RuntimeException("[LaravelE2ETesting] " .
+                        "Testing database session connection '{$testingConnection}' not found. " .
+                        "Ensure TestingSessionServiceProvider has created this connection."
+                    );
+                }
+
                 break;
 
             case 'array':
@@ -117,55 +146,18 @@ class TestingEnvironmentSwitcher
                 break;
 
             default:
-                Log::warning(
-                    "[LaravelIntegrationTesting] Unknown or unsupported session driver '{$driver}'. ".
-                    'Skipping test storage switch. Ensure TestingSessionServiceProvider has created this connection.'
+                throw new \RuntimeException("[LaravelE2ETesting] " .
+                    "Unknown or unsupported session driver '{$driver}'. "
                 );
+
                 break;
         }
 
     }
 
-    public static function getTestingDatabaseConnection(): string
-    {
-        $baseConnection = config('database.default');
-        $testingConnection = env('DB_CONNECTION_TESTING', $baseConnection . '_testing');
-
-        return $testingConnection;
-    }
-
-    public static function getTestingQueueConnection(): string
-    {
-        $baseConnection = config('queue.default');
-        $testingConnection = env('QUEUE_CONNECTION_TESTING', $baseConnection . '_testing');
-
-        return $testingConnection;
-    }
-
-    public static function getTestingSessionConnection(): string
-    {
-        $baseConnection = config('session.connection') ?? 'default';
-        $testingConnection = env('SESSION_CONNECTION_TESTING', $baseConnection . '_testing');
-
-        return $testingConnection;
-    }
-
-    public static function getTestingCacheStore(): string
-    {
-        $baseStore = config('cache.default');
-        $testingStore = env('CACHE_STORE_TESTING', $baseStore . '_testing');
-
-        return $testingStore;
-    }
-
     /**
      * Reset the session handler so it rebuilds with the updated config.
      * This is necessary because Laravel's SessionManager caches the handler instance.
-     * 
-     * This method works by:
-     * 1. Clearing the SessionManager's internal driver cache (using reflection)
-     * 2. Forgetting container instances so they rebuild with the new config
-     * 3. Resetting auth guards so they pick up the new session store
      */
     public static function resetSessionHandler(): void
     {
@@ -199,10 +191,6 @@ class TestingEnvironmentSwitcher
                 app()->forgetInstance("auth.guard.{$guard}");
             }
         }
-        
-        // Force rebuild the driver by calling driver() which will use the updated config
-        // This will create a new Store with a new handler using the updated connection/config
-        $manager->driver();
     }
 
 

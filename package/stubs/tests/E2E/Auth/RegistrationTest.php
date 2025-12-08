@@ -20,7 +20,8 @@ test('new users can register', function () {
     $this->assertStringContainsString(route('dashboard', absolute: false), $response->getHeaderLine('Location'));
 
     // Verify user is authenticated after registration
-    $response = $builder->get('/test/requires-auth')->send();
+    $builder->refreshXsrf();
+    $response = $builder->post('/test/requires-auth')->send();
 
     $this->assertEquals(200, $response->getStatusCode());
     $this->assertEquals(['success' => true], json_decode($response->getBody(), true));

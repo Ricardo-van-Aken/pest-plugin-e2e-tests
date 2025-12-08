@@ -5,7 +5,8 @@ namespace RicardoVanAken\PestPluginE2ETests\Providers;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use RicardoVanAken\PestPluginE2ETests\Http\Middleware\SwitchTestingStorage;
+use RicardoVanAken\PestPluginE2ETests\Support\TestingEnvironmentSwitcher;
+use Illuminate\Http\Request;
 
 /**
  * Main service provider for E2E testing functionality.
@@ -25,6 +26,18 @@ class TestingServiceProvider extends ServiceProvider
             __DIR__.'/../../config/e2e-testing.php',
             'e2e-testing'
         );
+        
+        // Check for X-TESTING header on every request and switch environment
+        $this->app->booting(function () {
+            $request = request();
+            if ($request) {
+                $headerName = config('e2e-testing.header_name', 'X-TESTING');
+                
+                if ($request->hasHeader($headerName)) {
+                    TestingEnvironmentSwitcher::switchAll();
+                }
+            }
+        });
     }
 
     /**
@@ -41,21 +54,14 @@ class TestingServiceProvider extends ServiceProvider
         ], 'e2e-testing-phpunit');
         $this->publishE2ETestStubs();
 
-        // Register middleware FIRST, before registering routes
-        // This ensures routes registered with 'web' middleware group will include our middleware
-        // In Laravel 12, middleware groups are configured in bootstrap/app.php, but
-        // packages can still use pushMiddlewareToGroup on the router
-        /** @var \Illuminate\Routing\Router $router */
-        $router = $this->app['router'];
-        
-        // Prepend to web group so it runs before StartSession
-        // This way session will be initialized with the correct testing connection
-        $router->prependMiddlewareToGroup('web', SwitchTestingStorage::class);
-        $router->prependMiddlewareToGroup('api', SwitchTestingStorage::class);
+        // Middleware for swapping the storage on every request with the X-TESTING header
+        // $router = $this->app['router'];
+        // $router->prependMiddlewareToGroup('web', SwitchTestingStorage::class);
+        // $router->prependMiddlewareToGroup('api', SwitchTestingStorage::class);
 
-        // Register routes AFTER middleware is added to groups
-        // This ensures the routes will use the updated middleware group definition
+        // Register routes
         $this->registerTestRoutes();
+
     }
 
     /**

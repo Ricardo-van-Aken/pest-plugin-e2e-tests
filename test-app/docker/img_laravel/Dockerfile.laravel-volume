@@ -50,7 +50,7 @@ COPY --chown=www-data:www-data --from=0 /var/www/node_modules ./node_modules
 # Copy package (source path is relative to build context, destination is absolute in image)
 COPY --chown=www-data:www-data ${PACKAGE_ROOT} /package
 
-# Install composer dependencies
+# Install composer dependencies (skip scripts to avoid errors during build when .env is not available)
 RUN composer install
 
 # The tests are ran with Pest, which requires write access to the pest directory, so we give the testrunner access

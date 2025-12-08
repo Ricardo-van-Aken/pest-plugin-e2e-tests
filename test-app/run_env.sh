@@ -10,7 +10,7 @@
 #   DB: mysql, sqlite
 #   Cache: redis, array
 #   Queue: redis, sync
-#   Sessions: redis, array
+#   Sessions: redis, array, database
 
 set -euo pipefail
 

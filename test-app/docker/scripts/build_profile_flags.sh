@@ -57,6 +57,7 @@ esac
 case "$SESSION_OPTION" in
   redis) add_profile "session-redis" ;;
   array) ;;
+  database) ;;
   *)
     echo "Unsupported session option: $SESSION_OPTION" >&2
     echo "Supported session options: redis, array" >&2

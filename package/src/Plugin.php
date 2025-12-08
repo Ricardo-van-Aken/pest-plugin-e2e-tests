@@ -23,7 +23,6 @@ final class Plugin implements Bootable
 
         if ($e2ePath) {
             pest()->extend(E2ETestCase::class)
-                ->use(DatabaseTruncation::class)
                 ->in($e2ePath);
         }
     }
