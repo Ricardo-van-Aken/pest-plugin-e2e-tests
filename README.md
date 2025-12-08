@@ -60,35 +60,104 @@ If the package is not published to Packagist, add the repository to your `compos
 
 ### 1. Environment Configuration
 
-E2E tests work by sending HTTP requests to your application. When the application receives a request with the `X-TESTING` header, it automatically switches to testing storage (database, cache, queues, sessions) using values from your `.env` file. The `phpunit.e2e.xml` file ensures your test code uses the same testing storage configuration, keeping both sides in sync.
+E2E tests work by sending HTTP requests to your application. When the application receives a request with the `X-TESTING` header, it automatically switches to testing storage (database, cache, queues, sessions). These connections are created using a combination of the default connection and values from your `.env` file. 
 
 #### Application Environment Variables (`.env`)
 
-Add these to your application's `.env` file. These values are used by the application when it receives test requests:
+Add these optional environment variables to your application's `.env` file to override the default testing storage configuration. These values are used by the application when it receives test requests with the `X-TESTING` header.
 
-**Testing Database Configuration:**
+**Note:** All environment variables are optional. If not provided, the package will use defaults based on your base configuration (e.g., `mysql` → `mysql_testing`, default Redis DB numbers, etc.).
+
+**Testing Database Configuration (optional overrides):**
 ```env
+# Override the testing database connection name. Defaults to {baseConnection}_testing, where baseConnection is the
+# default database connection
+DB_CONNECTION_TESTING=mysql_testing
+```
+
+*If using mysql for the database*
+```env
+# Override the database name. Defaults to {baseDatabase}_testing, where baseDatabase is the database name from the
+# baseConnection
 DB_DATABASE_TESTING=your_testing_database
+
+# Override the database credentials. Defaults to default connection credentials
 DB_USERNAME_TESTING=your_testing_username
 DB_PASSWORD_TESTING=your_testing_password
 ```
 
-**Redis Queue Configuration (if using Redis for queues):**
+**Testing Cache Configuration (optional overrides):**
 ```env
+# Override the testing cache store name. Defaults to {baseStore}_testing, where baseStore is the default cache store
+CACHE_STORE_TESTING=redis_testing
+```
+
+*If using redis for cache*
+```env
+# Override the Redis connection name for cache. Defaults to {baseConnection}_testing, where baseConnection is the
+# Redis connection used by the base cache store
+REDIS_CACHE_CONNECTION_TESTING=default_testing
+
+# If the redis connection in REDIS_CACHE_CONNECTION_TESTING does not yet exist in the config, it will be created
+# automatically. These env variables overwrite values in this redis connection.
+# Override the Redis database number for cache. Defaults to 11
+REDIS_CACHE_DB_TESTING=11
+```
+
+**Testing Queue Configuration (optional overrides):**
+```env
+# Override the testing queue connection name. Defaults to {baseConnection}_testing, where baseConnection is the
+# default queue connection
+QUEUE_CONNECTION_TESTING=redis_testing
+```
+
+*If using redis for queues*
+```env
+# Redis queue connection overrides:
+# Override the redis connection name. Defaults to {baseConnection}_testing, where baseConnection is the connection
+REDIS_QUEUE_CONNECTION_TESTING=default_testing
+
+# Override the queue name. Defaults to the queue name from the base queue connection configuration
+REDIS_QUEUE_TESTING=testing_queue
+
+# Override the retry_after value. Defaults to the retry_after value from the base queue connection configuration
+REDIS_QUEUE_RETRY_AFTER_TESTING=90
+
+# If the redis connection in REDIS_QUEUE_CONNECTION_TESTING does not yet exist in the config, it will be created
+# automatically. These env variables overwrite values in this redis connection.
+# Override the Redis database number for queues. Defaults to 13
 REDIS_QUEUE_DB_TESTING=13
 ```
 
-**Redis Session Configuration (if using Redis for sessions):**
+**Testing Session Configuration (optional overrides):**
+
+*If using redis for sessions*
 ```env
+# Override the testing session connection name. Defaults to {baseConnection}_testing, where baseConnection is the
+# Redis connection configured in session.connection (or 'default' if not set)
+SESSION_CONNECTION_TESTING=default_testing
+
+# If the redis connection in SESSION_CONNECTION_TESTING does not yet exist in the config, it will be created
+# automatically. These env variables overwrite values in this redis connection.
+# Override the Redis database number for sessions. Defaults to 12
 REDIS_SESSION_DB_TESTING=14
 ```
 
-**Redis Cache Configuration (if using Redis for cache):**
+*If using database for sessions*
 ```env
-REDIS_CACHE_DB_TESTING=15
+# Override the testing session connection name. Defaults to {baseConnection}_testing, where baseConnection is the
+# database connection configured in session.connection (or the default database connection if not set)
+SESSION_CONNECTION_TESTING=mysql_testing
+
+# Override the database name. Defaults to {baseDatabase}_testing, where baseDatabase is the database name from the
+# baseConnection
+DB_SESSION_DATABASE_TESTING=your_testing_database
+
+# Override the database credentials. Defaults to default connection credentials
+DB_SESSION_USERNAME_TESTING=your_testing_username
+DB_SESSION_PASSWORD_TESTING=your_testing_password
 ```
 
-Also make sure your `APP_URL` points to the correct URL.
 
 #### Test Code Environment Variables (`phpunit.e2e.xml`)
 
@@ -98,20 +167,13 @@ Publish the PHPUnit configuration file:
 php artisan vendor:publish --tag=e2e-testing-phpunit
 ```
 
-**What it does:** Creates `phpunit.e2e.xml` in your project root.
+**Purpose** Set environment variables to be used in the end-to-end tests
 
-**Purpose:** Configures the test code environment to match the application's testing storage configuration:
-- Sets `APP_ENV=testing`
-- Sets `DB_CONNECTION` to your testing connection. This must match the connection the package switches to (see [Database Switching](#database-switching))
-- Configures Redis database numbers for cache, queue, and sessions (if using Redis) - must match `REDIS_*_DB_TESTING` values from `.env` (see [Cache Switching](#cache-switching), [Queue Switching](#queue-switching), [Session Switching](#session-switching))
+**When to publish:** Always. This file ensures your test code can connect to the correct application URL.
 
-**When to publish:** Always. This file ensures your test code and application code use the same storage.
+**After publishing, configure `phpunit.e2e.xml`:**
 
-**After publishing, configure `phpunit.e2e.xml` to match your `.env` values:**
-- Set `DB_CONNECTION` to match your testing connection (e.g., `mysql_testing`)
-- If using Redis for cache, set `REDIS_CACHE_DB` to match `REDIS_CACHE_DB_TESTING` from your `.env` (e.g., `15`)
-- If using Redis for queues, set `REDIS_QUEUE_DB` to match `REDIS_QUEUE_DB_TESTING` from your `.env` (e.g., `13`)
-- If using Redis for sessions, set `REDIS_SESSION_DB` to match `REDIS_SESSION_DB_TESTING` from your `.env` (e.g., `14`)
+Set `APP_URL` to the URL where your application is running and where the E2E tests should send their HTTP requests. For example: `https://your-test-domain.com` or `http://nginx`.
 
 
 ### 2. Publish Package Assets (Optional)
@@ -129,8 +191,6 @@ Or publish individual assets:
 ```bash
 php artisan vendor:publish --tag=e2e-testing-config
 ```
-
-**What it does:** Creates `config/e2e-testing.php` in your project root.
 
 **Purpose:** Allows you to customize the package behavior:
 - `header_name`: The HTTP header name that triggers storage switching (default: `X-TESTING`)
@@ -179,70 +239,42 @@ When the application receives a request with the `X-TESTING` header, it automati
 
 ### Database Switching
 
-The application automatically switches from the default database connection to a `{connection}_testing` connection (for example: `mysql` → `mysql_testing`).
+The application automatically switches from the default database connection to a `{connection}_testing` connection (for example: `mysql` → `mysql_testing`). This connection is automatically created in the config if it does not exist yet.
 
-**Supported and Tested:** Only MySQL is currently tested and officially supported.
+**Supported and Tested:** Only the MySQL driver is currently tested and officially supported.
 
 **Additional Setup Required:** You must create a separate testing database in your database server. The package will use the credentials from `DB_DATABASE_TESTING`, `DB_USERNAME_TESTING`, and `DB_PASSWORD_TESTING` to connect to this database.
-
-**Automatic Database Connection Creation:**
-
-The package automatically creates the following connections if the corresponding base connection exists:
-
-- `mysql_testing` (if `mysql` exists) - **✅ Tested and supported**
-- `mariadb_testing` (if `mariadb` exists)
-- `pgsql_testing` (if `pgsql` exists)
-- `sqlite_testing` (if `sqlite` exists)
-- `sqlsrv_testing` (if `sqlsrv` exists)
 
 
 ### Cache Switching
 
-**Supported and Tested:** Only Redis is currently tested and officially supported.
+The application automatically switches from the default cache store to a `{store}_testing` store (for example: `redis` → `redis_testing`).
 
-**Redis Cache:**
-- Switches to a separate Redis database number specified by `REDIS_CACHE_DB_TESTING` (default: 15)
+**Supported and Tested:** Only the Redis driver is currently tested and officially supported.
 
-**Additional Setup Required:** Ensure the Redis database number specified in `REDIS_CACHE_DB_TESTING` exists in your Redis server. Redis databases are numbered 0-15 by default, so make sure you're using an available database number.
+**Additional Setup Required:** If using Redis for cache, ensure the Redis database number specified in `REDIS_CACHE_DB_TESTING` exists in your Redis server. Redis databases are numbered 0-15 by default, so make sure you're using an available database number.
 
-**Other Cache Drivers (not tested):**
-- Database cache: Uses the testing database connection (see [Database Switching](#database-switching))
-- File cache: Uses `storage/framework/cache/testing` directory (automatically created, no additional setup needed)
-- Array cache: Already isolated per process (no additional setup needed)
-- Memcached: Uses a testing prefix (no additional setup needed, though a separate Memcached server is recommended)
-- DynamoDB: Uses a testing table (requires a separate DynamoDB table to be created with `_testing` suffix)
 
 ### Queue Switching
 
-**Supported and Tested:** Only Redis is currently tested and officially supported.
+The application automatically switches from the default queue connection to a `{connection}_testing` store (for example: `redis` → `redis_testing`).
+
+**Supported and Tested:** Only the Redis driver is currently tested and officially supported.
 
 **Redis Queue:**
 - Switches to a separate Redis database number specified by `REDIS_QUEUE_DB_TESTING` (default: 13)
 
 **Additional Setup Required:** Ensure the Redis database number specified in `REDIS_QUEUE_DB_TESTING` exists in your Redis server. Redis databases are numbered 0-15 by default, so make sure you're using an available database number.
 
-**Other Queue Drivers (not tested):**
-- Database queue: Uses the testing database connection (see [Database Switching](#database-switching))
-- Sync queue: Already isolated per process (no additional setup needed)
-- SQS: Requires a separate queue to be created. Set `SQS_QUEUE_TESTING` environment variable with the testing queue name
-- Beanstalkd: Requires a separate queue name. Set `BEANSTALKD_QUEUE_TESTING` environment variable with the testing queue name
 
 ### Session Switching
 
 **Supported and Tested:** Only Redis is currently tested and officially supported.
 
 **Redis Session:**
-- Switches to a separate Redis database number specified by `REDIS_SESSION_DB_TESTING` (default: 14)
+- Switches to a separate Redis database number specified by `REDIS_SESSION_DB_TESTING` (default: 12)
 
 **Additional Setup Required:** Ensure the Redis database number specified in `REDIS_SESSION_DB_TESTING` exists in your Redis server. Redis databases are numbered 0-15 by default, so make sure you're using an available database number.
-
-**Other Session Drivers (not tested):**
-- Database sessions: Uses the testing database connection (requires testing database setup, see [Database Switching](#database-switching))
-- File sessions: Uses `storage/framework/sessions/testing` directory (automatically created, no additional setup needed)
-- Array sessions: Already isolated per process (no additional setup needed)
-- Cookie sessions: Already isolated per request (no additional setup needed)
-- Memcached: Uses a testing prefix (no additional setup needed, though a separate Memcached server is recommended)
-- DynamoDB: Uses a testing table (requires a separate DynamoDB table to be created with `_testing` suffix)
 
 ## Usage
 

@@ -27,7 +27,7 @@ class TestingServiceProvider extends ServiceProvider
             'e2e-testing'
         );
         
-        // Check for X-TESTING header on every request and switch environment
+        // Check for X-TESTING header on and switch environment
         $this->app->booting(function () {
             $request = request();
             if ($request) {

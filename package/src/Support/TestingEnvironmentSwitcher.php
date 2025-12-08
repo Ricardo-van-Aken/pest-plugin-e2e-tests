@@ -163,12 +163,9 @@ class TestingEnvironmentSwitcher
     {
         $manager = Session::getFacadeRoot();
         
-        // Use reflection to clear the cached driver instances
-        // This forces Laravel to rebuild them with the updated config
-        $reflection = new \ReflectionClass($manager);
-        
         // Clear the cached drivers array - this is where Laravel stores the driver instances
         // When we call driver() again, it will rebuild using the updated config
+        $reflection = new \ReflectionClass($manager);
         if ($reflection->hasProperty('drivers')) {
             $driversProperty = $reflection->getProperty('drivers');
             $driversProperty->setAccessible(true);
