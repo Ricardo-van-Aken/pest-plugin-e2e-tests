@@ -5,7 +5,7 @@ A Laravel package that allows for the easy creation of true end-to-end tests, wh
 ## Features
 
 - **Storage Switching:** Automatically switches databases, cache, queues, and sessions to testing storage when `X-TESTING` header is detected
-- **HTTP Request Builder:** Provides `E2ETestCase` with fluent HTTP client and request builder
+- **HTTP Request Builder:** Provides `E2ETestCase` with HTTP client and request builder
 - **Test Stubs:** Includes ready-to-use test stubs for common Laravel features (authentication, registration, settings, etc.)
 
 ## Requirements
@@ -37,7 +37,7 @@ A Laravel package that allows for the easy creation of true end-to-end tests, wh
 ## Installation
 
 ```bash
-composer require ricardo-van-aken/laravel-integration-testing
+composer require ricardo-van-aken/laravel-e2e-testing
 ```
 
 If the package is not published to Packagist, add the repository to your `composer.json`:
@@ -169,8 +169,6 @@ php artisan vendor:publish --tag=e2e-testing-phpunit
 
 **Purpose** Set environment variables to be used in the end-to-end tests
 
-**When to publish:** Always. This file ensures your test code can connect to the correct application URL.
-
 **After publishing, configure `phpunit.e2e.xml`:**
 
 Set `APP_URL` to the URL where your application is running and where the E2E tests should send their HTTP requests. For example: `https://your-test-domain.com` or `http://nginx`.
@@ -198,7 +196,7 @@ php artisan vendor:publish --tag=e2e-testing-config
 - `two_factor_challenge_route`: The route for submitting 2FA challenges (default: `two-factor.login`)
 - `two_factor_challenge_location_route`: The route to check if login redirected to 2FA (default: `two-factor.login`)
 
-**When to publish:** Only if you need to customize the header name or authentication routes. The package works with defaults, so this is optional.
+**When to publish:** Only if you need to customize the header name or authentication routes.
 
 #### E2E Test Stubs (`e2e-tests`)
 
@@ -233,7 +231,7 @@ Add this to your `composer.json` scripts section:
 
 ## Storage Switching
 
-When the application receives a request with the `X-TESTING` header, it automatically switches from default storage to separate testing storage for databases, cache, queues, and sessions. This ensures complete isolation between test and production environments.
+When the application receives a request with the `X-TESTING` header, it automatically switches from default storage to separate testing storage for databases, cache, queues, and sessions. This ensures complete storage isolation between test and production environments.
 
 **Note:** Some storage drivers require additional setup (such as creating an extra mysql database). See the individual sections below for details.
 
@@ -280,7 +278,7 @@ The application automatically switches from the default queue connection to a `{
 
 ### Using E2ETestCase
 
-The package provides an `E2ETestCase` base class that includes an HTTP request builder that automatically adds the `X-TESTING` header to all requests. This ensures that the application switches to testing storage (database, cache, queues, sessions) when processing test requests.
+The package provides an `E2ETestCase` base class that switches to testing storage (database, cache, queues, sessions) before running the actual test. This base class includes an HTTP request builder that automatically adds the `X-TESTING` header to all requests. This ensures that the application switches to testing storage when processing test requests.
 
 
 ### HTTP Request Builder Methods
@@ -303,12 +301,12 @@ The `httpRequestBuilder()` provides the following methods for sending requests t
 - `actingAs($user, $password = 'password', $recoveryCode = null)` - Authenticates a user. Automatically handles login and 2FA if enabled(assuming laravel's fortify is used). The `$recoveryCode` parameter is used for 2FA authentication.
 
 **Execution:**
-- `send()` - Sends the request and returns the response. You can also invoke the builder directly (`$this->httpRequestBuilder()->get('/')->send()` can be written as `$this->httpRequestBuilder()->get('/')()`)
+- `send()` - Sends the request and returns the response. You can also invoke the builder directly. (`$this->httpRequestBuilder()->get('/')->send()` can be written as `$this->httpRequestBuilder()->get('/')()`)
 
 ### Running Tests
 
 ```bash
-# Using the composer script
+# Using the composer script (if created)
 composer test:e2e
 
 # Or directly
